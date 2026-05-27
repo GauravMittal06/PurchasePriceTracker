@@ -14,16 +14,8 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const multer = require('multer');
-const pdfParse = require('pdf-parse');
 const uuid = require('uuid');
 require('dotenv').config();
-
-// Configure multer to store uploaded files temporarily in memory
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
-});
 
 // ============================================================================
 // DATABASE SETUP
@@ -53,7 +45,7 @@ if (process.env.DATABASE_URL) {
   }
 } else {
   console.log('⚠️  No DATABASE_URL provided - running in memory-only mode');
-  console.log('   PDF extraction will work, but data won\'t persist');
+  console.log('   Data will not persist between server restarts');
 }
 
 // ============================================================================
@@ -193,15 +185,47 @@ const queryHelper = {
     }
   },
 
+  insertChemical: async (chemicalData) => {
+    if (useDatabase && pool) {
+      const { id, name, created_at } = chemicalData;
+      try {
+        await pool.query(
+          `INSERT INTO chemicals (id, name, created_at) VALUES ($1, $2, $3)`,
+          [id, name, created_at]
+        );
+      } catch (error) {
+        // Ignore duplicate key errors
+        if (!error.message.includes('duplicate')) {
+          throw error;
+        }
+      }
+    } else {
+      const existing = inMemoryData.chemicals.find(c => c.name.toLowerCase() === chemicalData.name.toLowerCase());
+      if (!existing) {
+        inMemoryData.chemicals.push({
+          id: chemicalData.id || uuid.v4(),
+          ...chemicalData
+        });
+      }
+    }
+  },
+
   insertVendor: async (vendorData) => {
     if (useDatabase && pool) {
       const { id, name, created_at, device_id } = vendorData;
-      await pool.query(
-        `INSERT INTO vendors (id, name, created_at, device_id) VALUES ($1, $2, $3, $4)`,
-        [id, name, created_at, device_id]
-      );
+      try {
+        await pool.query(
+          `INSERT INTO vendors (id, name, created_at, device_id) VALUES ($1, $2, $3, $4)`,
+          [id, name, created_at, device_id]
+        );
+      } catch (error) {
+        // Ignore duplicate key errors
+        if (!error.message.includes('duplicate')) {
+          throw error;
+        }
+      }
     } else {
-      const existing = inMemoryData.vendors.find(v => v.name === vendorData.name);
+      const existing = inMemoryData.vendors.find(v => v.name.toLowerCase() === vendorData.name.toLowerCase());
       if (!existing) {
         inMemoryData.vendors.push({
           id: vendorData.id || uuid.v4(),
@@ -213,23 +237,25 @@ const queryHelper = {
 
   vendorExists: async (vendorName) => {
     if (useDatabase && pool) {
-      const result = await pool.query('SELECT id FROM vendors WHERE name = $1', [vendorName]);
+      const result = await pool.query('SELECT id FROM vendors WHERE LOWER(name) = LOWER($1)', [vendorName]);
       return result.rows.length > 0;
     } else {
-      return inMemoryData.vendors.some(v => v.name === vendorName);
+      return inMemoryData.vendors.some(v => v.name.toLowerCase() === vendorName.toLowerCase());
     }
   },
 
   priceExists: async (chemical_name, vendor_name, purchase_date) => {
     if (useDatabase && pool) {
       const result = await pool.query(
-        `SELECT id FROM prices WHERE chemical_name = $1 AND vendor_name = $2 AND purchase_date = $3`,
+        `SELECT id FROM prices WHERE LOWER(chemical_name) = LOWER($1) AND LOWER(vendor_name) = LOWER($2) AND purchase_date = $3`,
         [chemical_name, vendor_name, purchase_date]
       );
       return result.rows.length > 0;
     } else {
       return inMemoryData.prices.some(
-        p => p.chemical_name === chemical_name && p.vendor_name === vendor_name && p.purchase_date === purchase_date
+        p => p.chemical_name.toLowerCase() === chemical_name.toLowerCase() && 
+             p.vendor_name.toLowerCase() === vendor_name.toLowerCase() && 
+             p.purchase_date === purchase_date
       );
     }
   }
@@ -251,198 +277,6 @@ app.get('/api/health', (req, res) => {
 });
 
 // ============================================================================
-// PDF UPLOAD & EXTRACTION ENDPOINT
-// ============================================================================
-
-app.post('/api/upload-pdf', upload.single('file'), async (req, res) => {
-  console.log('📋 PDF upload request received');
-
-  if (!req.file) {
-    console.error('❌ No file uploaded');
-    return res.status(400).json({ 
-      success: false,
-      error: 'No file uploaded' 
-    });
-  }
-
-  try {
-    console.log(`📄 Processing PDF: ${req.file.originalname} (${req.file.size} bytes)`);
-
-    // Parse PDF
-    const pdfData = await pdfParse(req.file.buffer);
-    const text = pdfData.text;
-
-    console.log(`✓ PDF parsed successfully (${text.length} characters)`);
-
-    // Extract vendor name (look for "Ledger Account" section)
-    const vendorMatch = text.match(/Ledger Account\s*\n([^\n]+)\n/) || 
-                        text.match(/Vendor[:\s]+([^\n]+)\n/) ||
-                        text.match(/^([^\n]+)\n/);
-    const vendorName = vendorMatch ? vendorMatch[1].trim() : `Vendor_${Date.now()}`;
-
-    console.log(`🏢 Vendor: ${vendorName}`);
-
-    // Extract all transactions (Date, Chemical, Price, Unit, Quantity)
-    const transactions = [];
-    const lines = text.split('\n');
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Look for purchase lines with chemical names and prices
-      if (line.includes('Purchase') || line.includes('CHEMICAL') || /\d{1,2}-\w{3}-\d{2}/.test(line)) {
-        // Extract date (dd-mmm-yy format)
-        const dateMatch = line.match(/(\d{1,2})-(\w{3})-(\d{2})/);
-        if (!dateMatch) continue;
-
-        const dayStr = dateMatch[1].padStart(2, '0');
-        const monthMap = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
-        const month = monthMap[dateMatch[2]] || '01';
-        const year = 2000 + parseInt(dateMatch[3]);
-        const dateStr = `${year}-${month}-${dayStr}`;
-
-        // Look ahead for chemical name and price
-        let j = i + 1;
-        while (j < lines.length && j < i + 10) {
-          const nextLine = lines[j];
-
-          // Match pattern: CHEMICAL_NAME QUANTITY UNIT PRICE/UNIT TOTAL_PRICE
-          // Or simpler pattern: CHEMICAL QUANTITY UNIT PRICE
-          const chemicalMatch = nextLine.match(/([A-Z][A-Za-z0-9\s]*?)\s+([\d.]+)\s+(\w+)\s+([\d.]+)\s*\/?\s*(\w*)\s*([\d.]*)/);
-          
-          if (chemicalMatch) {
-            const chemicalName = chemicalMatch[1].trim();
-            const quantity = parseFloat(chemicalMatch[2]) || 1;
-            const unit = chemicalMatch[3] || 'unit';
-            const pricePerUnit = parseFloat(chemicalMatch[4]) || 0;
-
-            if (pricePerUnit > 0 && chemicalName.length > 0) {
-              transactions.push({
-                chemical_name: chemicalName,
-                vendor_name: vendorName,
-                price_per_unit: pricePerUnit,
-                unit: unit,
-                quantity: quantity,
-                purchase_date: dateStr,
-              });
-              console.log(`  ✓ ${chemicalName}: ${pricePerUnit}/${unit}`);
-              break;
-            }
-          }
-          j++;
-        }
-      }
-    }
-
-    console.log(`📊 Found ${transactions.length} transactions`);
-
-    if (transactions.length === 0) {
-      // Even if no transactions found, don't fail - return success with 0 records
-      console.log('⚠️  No transactions found, but PDF was parsed successfully');
-      
-      // Still add the vendor
-      const vendorAlreadyExists = await queryHelper.vendorExists(vendorName);
-      if (!vendorAlreadyExists) {
-        await queryHelper.insertVendor({
-          id: uuid.v4(),
-          name: vendorName,
-          created_at: Date.now()
-        });
-        console.log(`✓ Vendor "${vendorName}" added`);
-      }
-
-      return res.json({
-        success: true,
-        message: 'PDF parsed but no price records found',
-        vendor_name: vendorName,
-        records_found: 0,
-        records_inserted: 0,
-        inserted_records: [],
-      });
-    }
-
-    // Deduplicate: keep only latest price per chemical
-    const grouped = {};
-    for (const txn of transactions) {
-      const key = txn.chemical_name;
-      if (!grouped[key] || new Date(txn.purchase_date) > new Date(grouped[key].purchase_date)) {
-        grouped[key] = txn;
-      }
-    }
-
-    const deduplicatedTxns = Object.values(grouped);
-    console.log(`✓ Deduplicated to ${deduplicatedTxns.length} unique chemicals`);
-
-    // Insert into database
-    let insertedCount = 0;
-    const insertedRecords = [];
-
-    try {
-      // Insert vendor if not exists
-      const vendorExists = await queryHelper.vendorExists(vendorName);
-      if (!vendorExists) {
-        await queryHelper.insertVendor({
-          id: uuid.v4(),
-          name: vendorName,
-          created_at: Date.now()
-        });
-        console.log(`✓ Vendor "${vendorName}" added to database`);
-      }
-
-      // Insert prices
-      for (const txn of deduplicatedTxns) {
-        const priceExists = await queryHelper.priceExists(txn.chemical_name, txn.vendor_name, txn.purchase_date);
-
-        if (!priceExists) {
-          const now = Date.now();
-          await queryHelper.insertPrice({
-            id: uuid.v4(),
-            chemical_name: txn.chemical_name,
-            vendor_name: txn.vendor_name,
-            price_per_unit: txn.price_per_unit,
-            unit: txn.unit,
-            quantity: txn.quantity,
-            purchase_date: txn.purchase_date,
-            created_at: now,
-            last_modified: now,
-            synced: true
-          });
-          insertedCount++;
-          insertedRecords.push(txn);
-        }
-      }
-
-      console.log(`✓ Successfully inserted ${insertedCount} price records`);
-
-      res.json({
-        success: true,
-        message: `Extracted ${insertedCount} new price records from PDF`,
-        vendor_name: vendorName,
-        records_found: deduplicatedTxns.length,
-        records_inserted: insertedCount,
-        inserted_records: insertedRecords,
-      });
-
-    } catch (dbError) {
-      console.error('❌ Database error:', dbError.message);
-      res.status(500).json({ 
-        success: false,
-        error: 'Failed to insert records into database',
-        details: dbError.message 
-      });
-    }
-
-  } catch (error) {
-    console.error('❌ PDF extraction error:', error.message);
-    res.status(500).json({ 
-      success: false,
-      error: 'PDF extraction failed', 
-      details: error.message 
-    });
-  }
-});
-
-// ============================================================================
 // GET PRICES BY CHEMICAL
 // ============================================================================
 
@@ -450,8 +284,8 @@ app.get('/api/prices/chemical/:name', async (req, res) => {
   try {
     const chemicalName = req.params.name;
     const prices = useDatabase && pool 
-      ? (await pool.query('SELECT * FROM prices WHERE chemical_name = $1', [chemicalName])).rows
-      : inMemoryData.prices.filter(p => p.chemical_name === chemicalName);
+      ? (await pool.query('SELECT * FROM prices WHERE LOWER(chemical_name) = LOWER($1)', [chemicalName])).rows
+      : inMemoryData.prices.filter(p => p.chemical_name.toLowerCase() === chemicalName.toLowerCase());
 
     res.json({
       chemical_name: chemicalName,
@@ -472,8 +306,8 @@ app.get('/api/prices/vendor/:name', async (req, res) => {
   try {
     const vendorName = req.params.name;
     const prices = useDatabase && pool 
-      ? (await pool.query('SELECT * FROM prices WHERE vendor_name = $1', [vendorName])).rows
-      : inMemoryData.prices.filter(p => p.vendor_name === vendorName);
+      ? (await pool.query('SELECT * FROM prices WHERE LOWER(vendor_name) = LOWER($1)', [vendorName])).rows
+      : inMemoryData.prices.filter(p => p.vendor_name.toLowerCase() === vendorName.toLowerCase());
 
     res.json({
       vendor_name: vendorName,
@@ -533,6 +367,23 @@ app.post('/api/prices', async (req, res) => {
     const id = uuid.v4();
     const now = Date.now();
 
+    // Auto-add vendor if not exists
+    const vendorExists = await queryHelper.vendorExists(vendor_name);
+    if (!vendorExists) {
+      await queryHelper.insertVendor({
+        id: uuid.v4(),
+        name: vendor_name,
+        created_at: now
+      });
+    }
+
+    // Auto-add chemical if not exists
+    await queryHelper.insertChemical({
+      id: uuid.v4(),
+      name: chemical_name,
+      created_at: now
+    });
+
     await queryHelper.insertPrice({
       id,
       chemical_name,
@@ -554,6 +405,122 @@ app.post('/api/prices', async (req, res) => {
   } catch (error) {
     console.error('Insert error:', error);
     res.status(500).json({ error: 'Failed to add price' });
+  }
+});
+
+// ============================================================================
+// SYNC ENDPOINT - Core offline-first sync logic
+// ============================================================================
+
+app.post('/api/sync', async (req, res) => {
+  try {
+    const { device_id, last_sync_timestamp, offline_queue } = req.body;
+    const now = Date.now();
+
+    console.log(`\n📡 SYNC Request from device: ${device_id}`);
+    console.log(`   Queue items: ${(offline_queue || []).length}`);
+
+    // Process the offline queue - apply all pending changes
+    let processedCount = 0;
+    let skippedCount = 0;
+
+    for (const item of (offline_queue || [])) {
+      try {
+        if (item.action === 'create_price') {
+          const p = item.payload;
+          const exists = await queryHelper.priceExists(p.chemical_name, p.vendor_name, p.purchase_date);
+          
+          if (!exists) {
+            // Auto-add vendor if not exists
+            const vendorExists = await queryHelper.vendorExists(p.vendor_name);
+            if (!vendorExists) {
+              await queryHelper.insertVendor({
+                id: uuid.v4(),
+                name: p.vendor_name,
+                created_at: p.created_at,
+                device_id
+              });
+            }
+
+            // Auto-add chemical if not exists
+            await queryHelper.insertChemical({
+              id: uuid.v4(),
+              name: p.chemical_name,
+              created_at: p.created_at
+            });
+
+            // Insert price
+            await queryHelper.insertPrice({
+              id: p.id,
+              chemical_name: p.chemical_name,
+              vendor_name: p.vendor_name,
+              price_per_unit: p.price_per_unit,
+              unit: p.unit,
+              quantity: p.quantity,
+              purchase_date: p.purchase_date,
+              created_at: p.created_at,
+              last_modified: p.last_modified,
+              device_id,
+            });
+            processedCount++;
+          } else {
+            skippedCount++;
+          }
+        } else if (item.action === 'update_price') {
+          // Handle update_price action
+          const p = item.payload;
+          if (useDatabase && pool) {
+            await pool.query(
+              `UPDATE prices SET chemical_name = $1, vendor_name = $2, price_per_unit = $3, unit = $4, purchase_date = $5, last_modified = $6 
+               WHERE id = $7`,
+              [p.chemical_name, p.vendor_name, p.price_per_unit, p.unit, p.purchase_date, p.last_modified, p.id]
+            );
+          } else {
+            const priceIdx = inMemoryData.prices.findIndex(pr => pr.id === p.id);
+            if (priceIdx !== -1) {
+              inMemoryData.prices[priceIdx] = { ...inMemoryData.prices[priceIdx], ...p };
+            }
+          }
+          processedCount++;
+        }
+      } catch (itemError) {
+        console.error(`   ⚠️  Error processing queue item:`, itemError.message);
+        skippedCount++;
+      }
+    }
+
+    console.log(`   ✓ Processed: ${processedCount}, Skipped: ${skippedCount}`);
+
+    // Fetch merged state from DB (or memory)
+    let prices, vendors, chemicals;
+    if (useDatabase && pool) {
+      prices = (await pool.query('SELECT * FROM prices')).rows;
+      vendors = (await pool.query('SELECT * FROM vendors')).rows;
+      chemicals = (await pool.query('SELECT * FROM chemicals')).rows;
+    } else {
+      prices = inMemoryData.prices;
+      vendors = inMemoryData.vendors;
+      chemicals = inMemoryData.chemicals;
+    }
+
+    console.log(`   📊 Current state: ${prices.length} prices, ${vendors.length} vendors, ${chemicals.length} chemicals\n`);
+
+    res.json({
+      success: true,
+      merged_prices: prices,
+      merged_vendors: vendors,
+      merged_chemicals: chemicals,
+      sync_timestamp: now,
+      processed_count: processedCount,
+      skipped_count: skippedCount,
+    });
+  } catch (error) {
+    console.error('❌ Sync error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Sync failed',
+      details: error.message 
+    });
   }
 });
 
@@ -605,17 +572,17 @@ const startServer = async () => {
       console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║   Price Negotiation Tracker - Backend Server           ║
-║   Running on http://localhost:${PORT}                     ║
+║   Running on http://localhost:${PORT}                  ║
 ║   ${useDatabase ? 'Database: PostgreSQL' : 'Database: In-Memory (Dev Mode)'}                              ║
 ║                                                        ║
 ║   Endpoints:                                           ║
-║   POST   /api/upload-pdf            - Extract PDF data ║
 ║   GET    /api/health                - Health check     ║
 ║   GET    /api/data                  - Get all data     ║
 ║   GET    /api/prices/chemical/:name - Query by chem    ║
 ║   GET    /api/prices/vendor/:name   - Query by vendor  ║
 ║   POST   /api/prices                - Add price        ║
 ║   POST   /api/vendors               - Add vendor       ║
+║   POST   /api/sync                  - Sync offline data║
 ╚════════════════════════════════════════════════════════╝
       `);
     });

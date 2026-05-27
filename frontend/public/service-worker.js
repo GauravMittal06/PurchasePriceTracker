@@ -1,122 +1,112 @@
-/**
- * Service Worker - PWA Offline Support
- * Place this file in public/service-worker.js
- */
+const CACHE_VERSION = 'v3-' + Date.now();
+const CACHE_NAME = `price-negotiator-${CACHE_VERSION}`;
+const API_CACHE = `api-cache-${CACHE_VERSION}`;
 
-const CACHE_NAME = 'price-negotiator-v1';
-const ASSETS_TO_CACHE = [
+const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
 ];
 
-// Install event - cache assets
+// INSTALL
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(() => {
-        // Non-critical error if some assets fail
-        console.log('Some assets could not be cached');
-      });
+      return cache.addAll(STATIC_ASSETS);
     })
   );
-  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// ACTIVATE
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
+        keys
+          .filter((key) => key !== CACHE_NAME && key !== API_CACHE)
+          .map((key) => caches.delete(key))
       );
     })
   );
+
   self.clients.claim();
+
+  self.clients.matchAll().then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({
+        type: 'SW_UPDATED',
+      });
+    });
+  });
 });
 
-// Fetch event - serve from cache, fallback to network
+// FETCH
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  if (
+    url.protocol !== 'http:' &&
+    url.protocol !== 'https:'
+  ) {
     return;
   }
 
-  // Skip API requests (let them go to network)
-  if (request.url.includes('/api/')) {
+  // API REQUESTS
+  if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful responses
-          if (response && response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
+          const clone = response.clone();
+
+          caches.open(API_CACHE).then((cache) => {
+            if (response.ok) {
+              cache.put(request, clone);
+            }
+          });
           return response;
         })
         .catch(() => {
-          // Return offline response for API failures
-          return caches.match(request) || new Response('Offline - data cached locally');
+          return caches.match(request);
         })
     );
-  } else {
-    // For static assets, try cache first, then network
-    event.respondWith(
-      caches.match(request).then((response) => {
-        if (response) {
-          return response;
-        }
 
-        return fetch(request).then((response) => {
-          if (!response || response.status !== 200 || response.type === 'error') {
-            return response;
-          }
+    return;
+  }
 
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+  // STATIC ASSETS
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
 
-          return response;
+      return fetch(request).then((response) => {
+        const clone = response.clone();
+
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, clone);
         });
-      }).catch(() => {
-        // Offline fallback
-        return new Response('Offline - resource not cached');
+
+        return response;
+      });
+    })
+  );
+});
+
+// BACKGROUND SYNC
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-price-data') {
+    event.waitUntil(
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'TRIGGER_SYNC',
+          });
+        });
       })
     );
   }
 });
-
-// Background sync (optional - for automatic sync when network returns)
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-prices') {
-    event.waitUntil(
-      fetch('/api/sync')
-        .then(() => {
-          // Notify clients that sync completed
-          self.clients.matchAll().then((clients) => {
-            clients.forEach((client) => {
-              client.postMessage({
-                type: 'SYNC_COMPLETE',
-                data: { success: true },
-              });
-            });
-          });
-        })
-        .catch(() => {
-          // Retry later
-          return Promise.reject();
-        })
-      );
-    }
-});
-
-console.log('✓ Service Worker activated');

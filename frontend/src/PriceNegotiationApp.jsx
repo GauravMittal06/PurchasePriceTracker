@@ -7,7 +7,10 @@ import { ChevronDown, Search, Plus, RefreshCw, Settings, X, TrendingDown, Trendi
 
 const DB_NAME = 'PriceNegotiationDB';
 const DB_VERSION = 1;
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL =
+  import.meta.env.PROD
+    ? '/api'
+    : 'http://localhost:5000/api';
 
 const initDB = () => {
   return new Promise((resolve, reject) => {
@@ -90,6 +93,17 @@ const dbOps = {
     });
   },
 
+  put: async (db, storeName, data) => {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.put(data);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+  },
+
   clear: async (db, storeName) => {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([storeName], 'readwrite');
@@ -130,7 +144,7 @@ const dbOps = {
 
 const fuzzyMatch = (query, text) => {
   const lowerQuery = query.toLowerCase();
-  const lowerText = text.toLowerCase();
+  const lowerText = String(text || '').toLowerCase();
 
   if (!lowerQuery) return 1;
   if (lowerText === lowerQuery) return 100;
@@ -185,7 +199,6 @@ export default function PriceNegotiationTracker() {
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [syncStatus, setSyncStatus] = useState('idle');
   const [offlineQueueCount, setOfflineQueueCount] = useState(0);
-  const [uploadStatus, setUploadStatus] = useState('');
   const [toast, setToast] = useState(null);
 
   const [logFormData, setLogFormData] = useState({
@@ -236,7 +249,20 @@ export default function PriceNegotiationTracker() {
         }
 
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+          navigator.serviceWorker
+            .register('/service-worker.js')
+            .then((registration) => {
+              console.log('SW registered:', registration);
+            
+              navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data?.type === 'SW_UPDATED') {
+                  showToast('New app version available. Refresh app.', 'info');
+                }
+              });
+            })
+            .catch((err) => {
+              console.error('SW registration failed:', err);
+            });
         }
       } catch (error) {
         console.error('DB init error:', error);
@@ -278,15 +304,10 @@ export default function PriceNegotiationTracker() {
     const initialChemicals = [
       { id: 'chem-1', name: 'HEROFF', created_at: Date.now() },
       { id: 'chem-2', name: 'LENDER', created_at: Date.now() },
-      { id: 'chem-3', name: 'Urea', created_at: Date.now() },
-      { id: 'chem-4', name: 'DAP', created_at: Date.now() },
-      { id: 'chem-5', name: 'NPK', created_at: Date.now() },
     ];
 
     const initialVendors = [
       { id: 'vendor-1', name: 'Do Aggri Science', created_at: Date.now() },
-      { id: 'vendor-2', name: 'Green Chemicals Ltd', created_at: Date.now() },
-      { id: 'vendor-3', name: 'Agro Supplies', created_at: Date.now() },
     ];
 
     for (const price of initialPrices) {
@@ -306,6 +327,36 @@ export default function PriceNegotiationTracker() {
     setVendors(initialVendors);
     showToast('Initial data loaded', 'success');
   };
+
+  // Auto-sync when internet reconnects
+  useEffect(() => {
+    const handleOnline = () => {
+      showToast('Internet restored - syncing...', 'info');
+      handleSync();
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [db, prices, vendors]);
+
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    
+    const handler = (event) => {
+      if (event.data?.type === 'TRIGGER_SYNC') {
+        handleSync();
+      }
+    };
+  
+    navigator.serviceWorker.addEventListener('message', handler);
+  
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handler);
+    };
+  }, [db, prices, vendors]);
 
   // =========================================================================
   // SEARCH & FILTERING
@@ -380,51 +431,6 @@ export default function PriceNegotiationTracker() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handlePdfUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-      setUploadStatus('⏳ Uploading and extracting...');
-
-      const response = await fetch(`${API_BASE_URL}/upload-pdf`, {
-        method: 'POST',
-        body: formData,
-      });
-    
-      const data = await response.json();
-    
-      if (data.success) {
-        setUploadStatus(`✓ Extracted ${data.records_inserted} records from ${data.vendor_name}`);
-
-        // Reload prices from IndexedDB
-        const updatedPrices = await dbOps.getAll(db, 'prices');
-        setPrices(updatedPrices);
-
-        const updatedChemicals = await dbOps.getAll(db, 'chemicals');
-        setChemicals(updatedChemicals);
-
-        const updatedVendors = await dbOps.getAll(db, 'vendors');
-        setVendors(updatedVendors);
-
-        document.getElementById('pdfUpload').value = '';
-        showToast(`✓ ${data.records_inserted} prices imported`, 'success');
-
-        setTimeout(() => setUploadStatus(''), 4000);
-      } else {
-        setUploadStatus(`✗ Error: ${data.error}`);
-        showToast(`Error: ${data.error}`, 'error');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      setUploadStatus(`✗ Upload failed`);
-      showToast(`Upload failed: ${error.message}`, 'error');
-    }
-  };
-
   const handleLogPrice = async () => {
     if (
       !logFormData.chemical ||
@@ -487,6 +493,15 @@ export default function PriceNegotiationTracker() {
     setShowLogPrice(false);
     setOfflineQueueCount((c) => c + 1);
     showToast('Price logged successfully', 'success');
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      const registration = await navigator.serviceWorker.ready;
+
+      try {
+        await registration.sync.register('sync-price-data');
+      } catch (err) {
+        console.error('Background sync registration failed:', err);
+      }
+    }
   };
 
   const handleEditPrice = async () => {
@@ -556,7 +571,7 @@ export default function PriceNegotiationTracker() {
       const queue = await dbOps.getAll(db, 'sync_queue');
       const lastSync = await dbOps.getMetadata(db, 'last_sync_time');
 
-      const response = await fetch('/api/sync', {
+      const response = await fetch(`${API_BASE_URL}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -589,6 +604,40 @@ export default function PriceNegotiationTracker() {
 
         setTimeout(() => setSyncStatus('idle'), 2000);
       }
+      // Update React state from merged backend state
+      if (data.merged_prices) {
+        setPrices(data.merged_prices);
+      }
+
+      if (data.merged_vendors) {
+        setVendors(data.merged_vendors);
+      }
+
+      if (data.merged_chemicals) {
+        setChemicals(data.merged_chemicals);
+      }
+
+      // Refresh IndexedDB with latest merged state
+
+      // Clear old data
+      await dbOps.clear(db, 'prices');
+      await dbOps.clear(db, 'vendors');
+      await dbOps.clear(db, 'chemicals');
+
+      // Save latest prices
+      for (const price of data.merged_prices || []) {
+        await dbOps.put(db, 'prices', price);
+      }
+
+      // Save latest vendors
+      for (const vendor of data.merged_vendors || []) {
+        await dbOps.add(db, 'vendors', vendor);
+      }
+
+      // Save latest chemicals
+      for (const chemical of data.merged_chemicals || []) {
+        await dbOps.add(db, 'chemicals', chemical);
+      }
     } catch (error) {
       console.error('Sync error:', error);
       setSyncStatus('error');
@@ -597,11 +646,10 @@ export default function PriceNegotiationTracker() {
     }
   };
 
-
-
-
-
   const getPriceComparison = (price) => {
+    price = Number(price);
+    if (isNaN(price)) return null;
+
     if (!currentPrice) return null;
     const curr = parseFloat(currentPrice);
     if (isNaN(curr)) return null;
@@ -759,41 +807,6 @@ export default function PriceNegotiationTracker() {
             </div>
           </div>
         )}
-
-        {/* PDF Upload Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-purple-500">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">📄 Import PDF Data</h2>
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Upload Ledger PDF
-              </label>
-              <input
-                type="file"
-                id="pdfUpload"
-                accept=".pdf"
-                onChange={handlePdfUpload}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm"
-              />
-            </div>
-            <button
-              onClick={() => document.getElementById('pdfUpload').click()}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-            >
-              Upload PDF
-            </button>
-          </div>
-          {uploadStatus && (
-            <p className={`mt-3 text-sm font-medium ${
-              uploadStatus.includes('✗') ? 'text-red-600' : 'text-green-600'
-            }`}>
-              {uploadStatus}
-            </p>
-          )}
-          <p className="text-xs text-slate-500 mt-2">
-            Automatically extracts chemical names, prices, units, and dates
-          </p>
-        </div>
 
         {/* Search Panel */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-indigo-500">
@@ -1008,7 +1021,7 @@ export default function PriceNegotiationTracker() {
                   <div className="flex items-baseline justify-between">
                     <div>
                       <p className="text-2xl font-bold text-slate-900">
-                        ₹{result.price_per_unit.toFixed(2)}
+                        ₹{Number(result.price_per_unit || 0).toFixed(2)}
                         <span className="text-sm text-slate-600 font-normal">
                           /{result.unit}
                         </span>

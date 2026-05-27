@@ -4,3 +4,4 @@ node_modules/
 dist/
 .vite/
 project_export.md
+seed.js
