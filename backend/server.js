@@ -451,7 +451,7 @@ app.post('/api/sync', async (req, res) => {
 
             // Insert price
             await queryHelper.insertPrice({
-              id: p.id,
+              id: uuid.v4(),
               chemical_name: p.chemical_name,
               vendor_name: p.vendor_name,
               price_per_unit: p.price_per_unit,
