@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="Live Price Negotiation Tracker - Offline-first PWA for chemical and fertilizer pricing" />
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Price Negotiator" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <!-- Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+  
+  <title>Price Negotiation Tracker</title>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="module" src="/src/index.jsx"></script>
+  
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/service-worker.js')
+          .then((registration) => {
+            console.log('✓ Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.warn('Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Handle online/offline events
+    window.addEventListener('online', () => {
+      console.log('✓ Back online');
+      // Trigger sync when network returns
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.sync.register('sync-prices');
+        });
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      console.log('✗ Connection lost - working offline');
+    });
+  </script>
+</body>
+</html>
