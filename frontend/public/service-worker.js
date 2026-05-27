@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v3-' + Date.now();
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `price-negotiator-${CACHE_VERSION}`;
 const API_CACHE = `api-cache-${CACHE_VERSION}`;
 
