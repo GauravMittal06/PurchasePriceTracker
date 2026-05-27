@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Search, Plus, RefreshCw, Settings, X, TrendingDown, TrendingUp } from 'lucide-react';
+import { Search, Plus, RefreshCw, Settings, X, TrendingDown, TrendingUp } from 'lucide-react';
 
 // ============================================================================
 // INDEXEDDB SETUP - OFFLINE-FIRST DATA PERSISTENCE
@@ -311,15 +311,15 @@ export default function PriceNegotiationTracker() {
     ];
 
     for (const price of initialPrices) {
-      await dbOps.add(database, 'prices', price);
+      await dbOps.put(database, 'prices', price);
     }
 
     for (const chem of initialChemicals) {
-      await dbOps.add(database, 'chemicals', chem);
+      await dbOps.put(database, 'chemicals', chem);
     }
 
     for (const vendor of initialVendors) {
-      await dbOps.add(database, 'vendors', vendor);
+      await dbOps.put(database, 'vendors', vendor);
     }
 
     setPrices(initialPrices);
@@ -372,13 +372,15 @@ export default function PriceNegotiationTracker() {
 
     if (searchChemical) {
       filtered = filtered.filter((p) =>
-        p.chemical_name.toLowerCase().includes(searchChemical.toLowerCase())
+        String(p.chemical_name || '')
+          .toLowerCase()
+          .includes(searchChemical.toLowerCase())
       );
     }
 
     if (searchVendor) {
       filtered = filtered.filter((p) =>
-        p.vendor_name.toLowerCase().includes(searchVendor.toLowerCase())
+        String(p.vendor_name || '').toLowerCase().includes(searchVendor.toLowerCase())
       );
     }
 
@@ -428,7 +430,11 @@ export default function PriceNegotiationTracker() {
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    clearTimeout(window.toastTimeout);
+
+    window.toastTimeout = setTimeout(() => {
+      setToast(null);
+    }, 3000);
   };
 
   const handleLogPrice = async () => {
@@ -456,7 +462,7 @@ export default function PriceNegotiationTracker() {
       synced: false,
     };
 
-    await dbOps.add(db, 'prices', newPrice);
+    await dbOps.put(db, 'prices', newPrice);
     await dbOps.add(db, 'sync_queue', {
       id: `sync-${Date.now()}`,
       action: 'create_price',
@@ -466,6 +472,7 @@ export default function PriceNegotiationTracker() {
     });
 
     // Auto-add vendor if new
+    
     const vendorExists = vendors.some(
       (v) => v.name.toLowerCase() === logFormData.vendor.toLowerCase()
     );
@@ -478,8 +485,27 @@ export default function PriceNegotiationTracker() {
         last_modified: Date.now(),
         synced: false,
       };
-      await dbOps.add(db, 'vendors', newVendor);
+      await dbOps.put(db, 'vendors', newVendor);
       setVendors([...vendors, newVendor]);
+    }
+
+    // Auto-add chemical if new
+    const chemicalExists = chemicals.some(
+      (c) => c.name.toLowerCase() === logFormData.chemical.toLowerCase()
+    );
+    
+    if (!chemicalExists) {
+      const newChemical = {
+        id: `chem-${Date.now()}-${Math.random()}`,
+        name: logFormData.chemical,
+        created_at: Date.now(),
+        last_modified: Date.now(),
+        synced: false,
+      };
+    
+      await dbOps.put(db, 'chemicals', newChemical);
+    
+      setChemicals([...chemicals, newChemical]);
     }
 
     setPrices([...prices, newPrice]);
@@ -631,12 +657,12 @@ export default function PriceNegotiationTracker() {
 
       // Save latest vendors
       for (const vendor of data.merged_vendors || []) {
-        await dbOps.add(db, 'vendors', vendor);
+        await dbOps.put(db, 'vendors', vendor);
       }
 
       // Save latest chemicals
       for (const chemical of data.merged_chemicals || []) {
-        await dbOps.add(db, 'chemicals', chemical);
+        await dbOps.put(db, 'chemicals', chemical);
       }
     } catch (error) {
       console.error('Sync error:', error);
@@ -1027,7 +1053,10 @@ export default function PriceNegotiationTracker() {
                         </span>
                       </p>
                       <p className="text-xs text-slate-500 mt-1">
-                        Last purchased: {result.purchase_date}
+                        Last purchased:{' '}
+                        {result.purchase_date
+                          ? result.purchase_date.split('T')[0]
+                          : 'N/A'}
                       </p>
                     </div>
                     <button
@@ -1089,7 +1118,7 @@ export default function PriceNegotiationTracker() {
       {/* Edit Price Modal */}
       {showEditPrice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-screen overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-slate-900">Update Price</h2>
               <button
@@ -1166,7 +1195,7 @@ export default function PriceNegotiationTracker() {
                 </label>
                 <input
                   type="date"
-                  value={editPriceData.date}
+                  value={editPriceData.date?.split('T')[0]}
                   onChange={(e) =>
                     setEditPriceData({ ...editPriceData, date: e.target.value })
                   }
@@ -1196,7 +1225,7 @@ export default function PriceNegotiationTracker() {
       {/* Log Price Modal */}
       {showLogPrice && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-screen overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-slate-900">Log Purchase</h2>
               <button
@@ -1217,6 +1246,7 @@ export default function PriceNegotiationTracker() {
                   <input
                     type="text"
                     placeholder="Add chemical..."
+                    onFocus={() => setOpenDropdown('log-chemical')}
                     value={logFormData.chemical}
                     onChange={(e) =>
                       setLogFormData({
@@ -1226,17 +1256,21 @@ export default function PriceNegotiationTracker() {
                     }
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg"
                   />
-                  {logFormData.chemical && filteredLogChemicals.length > 0 && (
+                  {openDropdown === 'log-chemical' &&
+                    logFormData.chemical &&
+                    filteredLogChemicals.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
                       {filteredLogChemicals.map((chem) => (
                         <div
                           key={chem.id}
-                          onClick={() =>
+                          onClick={() => {
                             setLogFormData({
                               ...logFormData,
                               chemical: chem.name,
-                            })
-                          }
+                            });
+                          
+                            setOpenDropdown(null);
+                          }}
                           className="px-4 py-2 hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
                         >
                           {chem.name}
@@ -1256,6 +1290,7 @@ export default function PriceNegotiationTracker() {
                   <input
                     type="text"
                     placeholder="Add vendor..."
+                    onFocus={() => setOpenDropdown('log-vendor')}
                     value={logFormData.vendor}
                     onChange={(e) =>
                       setLogFormData({
@@ -1265,17 +1300,21 @@ export default function PriceNegotiationTracker() {
                     }
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg"
                   />
-                  {logFormData.vendor && filteredLogVendors.length > 0 && (
+                  {openDropdown === 'log-vendor' &&
+                    logFormData.vendor &&
+                    filteredLogVendors.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
                       {filteredLogVendors.map((vendor) => (
                         <div
                           key={vendor.id}
-                          onClick={() =>
+                          onClick={() => {
                             setLogFormData({
                               ...logFormData,
                               vendor: vendor.name,
-                            })
-                          }
+                            });
+                          
+                            setOpenDropdown(null);
+                          }}
                           className="px-4 py-2 hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
                         >
                           {vendor.name}
@@ -1325,7 +1364,7 @@ export default function PriceNegotiationTracker() {
                 </label>
                 <input
                   type="date"
-                  value={logFormData.date}
+                  value={logFormData.date?.split('T')[0]}
                   onChange={(e) =>
                     setLogFormData({ ...logFormData, date: e.target.value })
                   }
