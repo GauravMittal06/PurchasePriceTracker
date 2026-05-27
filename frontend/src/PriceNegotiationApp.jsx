@@ -9,7 +9,7 @@ const DB_NAME = 'PriceNegotiationDB';
 const DB_VERSION = 1;
 const API_BASE_URL =
   import.meta.env.PROD
-    ? '/api'
+    ? 'https://purchasepricetracker.onrender.com/api'
     : 'http://localhost:5000/api';
 
 const initDB = () => {
