@@ -5,3 +5,4 @@ dist/
 .vite/
 project_export.md
 seed.js
+VENDOR_CHEMICAL_DATABASE.json
