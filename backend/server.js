@@ -94,7 +94,7 @@ const initializeDB = async () => {
         synced BOOLEAN DEFAULT true,
         created_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        garden_id UUID,
+        garden_id UUID
       );
     `);
 
@@ -144,10 +144,17 @@ const initializeDB = async () => {
     `);
 
     // Add foreign key constraint for garden_id
-    await pool.query(`
-      ALTER TABLE prices ADD CONSTRAINT fk_garden_id 
-      FOREIGN KEY (garden_id) REFERENCES gardens(id);
-    `);
+    try {
+      await pool.query(`
+        ALTER TABLE prices ADD CONSTRAINT fk_garden_id 
+        FOREIGN KEY (garden_id) REFERENCES gardens(id);
+      `);
+    } catch (error) {
+      // Constraint might already exist, that's ok
+      if (!error.message.includes('already exists')) {
+        console.error('Error adding foreign key:', error.message);
+      }
+    }
 
     // Sync log table (audit trail)
     await pool.query(`
@@ -411,7 +418,7 @@ app.post('/api/prices', async (req, res) => {
       purchase_date,
       created_at: now,
       last_modified: now,
-      synced: !useDatabase // Only mark as unsynced if using database
+      synced: !useDatabase
     });
 
     res.json({ 
@@ -515,15 +522,16 @@ app.post('/api/sync', async (req, res) => {
       vendors = (await pool.query('SELECT * FROM vendors')).rows;
       chemicals = (await pool.query('SELECT * FROM chemicals')).rows;
       gardens = (await pool.query('SELECT * FROM gardens')).rows;
+      console.log('🌱 Gardens fetched:', gardens);
     } else {
       prices = inMemoryData.prices;
       vendors = inMemoryData.vendors;
       chemicals = inMemoryData.chemicals;
-      gardens = [];
+      gardens = inMemoryData.gardens || [];
     }
 
     console.log(`   📊 Current state: ${prices.length} prices, ${vendors.length} vendors, ${chemicals.length} chemicals\n`);
-
+    
     res.json({
       success: true,
       merged_prices: prices,
@@ -620,6 +628,7 @@ const startServer = async () => {
 ║   POST   /api/prices                - Add price        ║
 ║   POST   /api/vendors               - Add vendor       ║
 ║   POST   /api/sync                  - Sync offline data║
+║   GET    /api/gardens               - Get gardens      ║
 ╚════════════════════════════════════════════════════════╝
       `);
     });

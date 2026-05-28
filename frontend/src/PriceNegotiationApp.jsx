@@ -664,7 +664,7 @@ export default function PriceNegotiationTracker() {
         setChemicals(data.merged_chemicals);
       }
 
-      if (data.merged_gardens) {
+      if (data.merged_gardens && data.merged_gardens.length > 0) {
         setGarden(data.merged_gardens[0]);
       }
 
