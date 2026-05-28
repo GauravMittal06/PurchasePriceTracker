@@ -86,14 +86,15 @@ const initializeDB = async () => {
         vendor_name VARCHAR(255) NOT NULL,
         price_per_unit DECIMAL(10, 2) NOT NULL,
         unit VARCHAR(50),
-        quantity INTEGER,
+        quantity NUMERIC(10, 2),
         purchase_date DATE NOT NULL,
         created_at BIGINT NOT NULL,
         last_modified BIGINT NOT NULL,
         device_id VARCHAR(255),
         synced BOOLEAN DEFAULT true,
         created_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        garden_id UUID,
       );
     `);
 
@@ -130,6 +131,22 @@ const initializeDB = async () => {
         device_id VARCHAR(255),
         created_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Gardens table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS gardens (
+        id UUID PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        created_at BIGINT NOT NULL,
+        created_at_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Add foreign key constraint for garden_id
+    await pool.query(`
+      ALTER TABLE prices ADD CONSTRAINT fk_garden_id 
+      FOREIGN KEY (garden_id) REFERENCES gardens(id);
     `);
 
     // Sync log table (audit trail)
@@ -171,11 +188,11 @@ const queryHelper = {
 
   insertPrice: async (priceData) => {
     if (useDatabase && pool) {
-      const { id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id } = priceData;
+      const { id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id, garden_id } = priceData;
       await pool.query(
-        `INSERT INTO prices (id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id, synced)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)`,
-        [id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id]
+        `INSERT INTO prices (id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id, garden_id, synced)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)`,
+        [id, chemical_name, vendor_name, price_per_unit, unit, quantity, purchase_date, created_at, last_modified, device_id, garden_id]
       );
     } else {
       inMemoryData.prices.push({
@@ -390,7 +407,7 @@ app.post('/api/prices', async (req, res) => {
       vendor_name,
       price_per_unit: parseFloat(price_per_unit),
       unit: unit || 'unit',
-      quantity: quantity ? parseInt(quantity) : 1,
+      quantity: quantity ? parseFloat(quantity) : 1,
       purchase_date,
       created_at: now,
       last_modified: now,
@@ -492,15 +509,17 @@ app.post('/api/sync', async (req, res) => {
     console.log(`   ✓ Processed: ${processedCount}, Skipped: ${skippedCount}`);
 
     // Fetch merged state from DB (or memory)
-    let prices, vendors, chemicals;
+    let prices, vendors, chemicals, gardens;
     if (useDatabase && pool) {
       prices = (await pool.query('SELECT * FROM prices')).rows;
       vendors = (await pool.query('SELECT * FROM vendors')).rows;
       chemicals = (await pool.query('SELECT * FROM chemicals')).rows;
+      gardens = (await pool.query('SELECT * FROM gardens')).rows;
     } else {
       prices = inMemoryData.prices;
       vendors = inMemoryData.vendors;
       chemicals = inMemoryData.chemicals;
+      gardens = [];
     }
 
     console.log(`   📊 Current state: ${prices.length} prices, ${vendors.length} vendors, ${chemicals.length} chemicals\n`);
@@ -510,6 +529,7 @@ app.post('/api/sync', async (req, res) => {
       merged_prices: prices,
       merged_vendors: vendors,
       merged_chemicals: chemicals,
+      merged_gardens: gardens,
       sync_timestamp: now,
       processed_count: processedCount,
       skipped_count: skippedCount,
@@ -557,6 +577,23 @@ app.post('/api/vendors', async (req, res) => {
   } catch (error) {
     console.error('Insert error:', error);
     res.status(500).json({ error: 'Failed to add vendor' });
+  }
+});
+
+// ============================================================================
+// GET GARDENS
+// ============================================================================
+
+app.get('/api/gardens', async (req, res) => {
+  try {
+    if (useDatabase && pool) {
+      const result = await pool.query('SELECT * FROM gardens');
+      res.json(result.rows);
+    } else {
+      res.json([]);
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch gardens' });
   }
 });
 

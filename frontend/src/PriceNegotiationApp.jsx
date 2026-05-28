@@ -41,6 +41,11 @@ const initDB = () => {
         db.createObjectStore('vendors', { keyPath: 'id' });
       }
 
+      // ADD AFTER VENDORS STORE:
+      if (!db.objectStoreNames.contains('gardens')) {
+        db.createObjectStore('gardens', { keyPath: 'id' });
+      }
+
       // Sync queue for offline changes
       if (!db.objectStoreNames.contains('sync_queue')) {
         db.createObjectStore('sync_queue', { keyPath: 'id' });
@@ -186,6 +191,7 @@ export default function PriceNegotiationTracker() {
   const [prices, setPrices] = useState([]);
   const [chemicals, setChemicals] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [garden, setGarden] = useState(null);
 
   const [searchChemical, setSearchChemical] = useState('');
   const [searchVendor, setSearchVendor] = useState('');
@@ -220,6 +226,19 @@ export default function PriceNegotiationTracker() {
 
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  const loadGarden = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/gardens`);
+      const gardens = await response.json();
+      if (gardens.length > 0) {
+        setGarden(gardens[0]);
+        await dbOps.put(db, 'gardens', gardens[0]);
+      }
+    } catch (error) {
+      console.error('Failed to load garden:', error);
+    }
+  };
+
   // =========================================================================
   // INITIALIZATION
   // =========================================================================
@@ -243,6 +262,8 @@ export default function PriceNegotiationTracker() {
 
         const queueCount = await dbOps.getAll(database, 'sync_queue');
         setOfflineQueueCount(queueCount.length);
+
+        await loadGarden();
 
         if (loadedPrices.length === 0 && loadedVendors.length === 0) {
           await seedInitialData(database);
@@ -643,12 +664,17 @@ export default function PriceNegotiationTracker() {
         setChemicals(data.merged_chemicals);
       }
 
+      if (data.merged_gardens) {
+        setGarden(data.merged_gardens[0]);
+      }
+
       // Refresh IndexedDB with latest merged state
 
       // Clear old data
       await dbOps.clear(db, 'prices');
       await dbOps.clear(db, 'vendors');
       await dbOps.clear(db, 'chemicals');
+      await dbOps.clear(db, 'gardens');
 
       // Save latest prices
       for (const price of data.merged_prices || []) {
@@ -663,6 +689,11 @@ export default function PriceNegotiationTracker() {
       // Save latest chemicals
       for (const chemical of data.merged_chemicals || []) {
         await dbOps.put(db, 'chemicals', chemical);
+      }
+
+      // Save latest gardens
+      for (const gdn of data.merged_gardens || []) {
+        await dbOps.put(db, 'gardens', gdn);
       }
     } catch (error) {
       console.error('Sync error:', error);

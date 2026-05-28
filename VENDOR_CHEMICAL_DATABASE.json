@@ -1,0 +1,2094 @@
+{
+  "metadata": {
+    "company": "GIRIRAJ PLANTATIONS PVT. LTD",
+    "document_type": "vendor_chemical_pricing_database",
+    "period": "1-Apr-25 to 31-May-26",
+    "created_date": "2026-05-28",
+    "total_vendors": 23,
+    "total_chemicals": 156
+  },
+  "vendors": [
+    {
+      "vendor_id": 1,
+      "vendor_name": "DO AGGRI SCIENCE",
+      "vendor_address": "47 A, 1ST, Zakaria Street, Kolkata, West Bengal, 700073",
+      "chemicals": [
+        {
+          "chemical_id": "GUNNER_001",
+          "chemical_name": "GUNNER",
+          "last_purchase_date": "2025-05-12",
+          "last_price": 1250.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 90.00
+        },
+        {
+          "chemical_id": "LENDER_001",
+          "chemical_name": "LENDER",
+          "last_purchase_date": "2026-05-13",
+          "last_price": 43.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 3950.00
+        },
+        {
+          "chemical_id": "EMANIL_001",
+          "chemical_name": "EMANIL",
+          "last_purchase_date": "2025-07-03",
+          "last_price": 700.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "HEROFF_001",
+          "chemical_name": "HEROFF",
+          "last_purchase_date": "2026-04-22",
+          "last_price": 1800.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "GEBRIL_001",
+          "chemical_name": "GEBRIL",
+          "last_purchase_date": "2026-03-07",
+          "last_price": 2500.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 5.00
+        },
+        {
+          "chemical_id": "REVENGE_001",
+          "chemical_name": "REVENGE",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 2500.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 2,
+      "vendor_name": "GREEN CHAIN",
+      "vendor_address": "83 - B/27, Srijani, Kolkata, UDYAM REG. NO. UDYAM-WB-10-0116873",
+      "chemicals": [
+        {
+          "chemical_id": "BIOBT_001",
+          "chemical_name": "BIO BT",
+          "last_purchase_date": "2026-04-02",
+          "last_price": 120.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 3,
+      "vendor_name": "AGRO CHEM",
+      "vendor_address": "H/401/1, Ground Floor, Balaji Complex, Sevoke Road, Siliguri, Opposite Canara Bank, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "BIFENTHRIN_AC",
+          "chemical_name": "BIFENTHRIN 10% EC (Bulk)",
+          "last_purchase_date": "2025-04-18",
+          "last_price": 478.81,
+          "unit": "per ltr",
+          "quantity_last_purchase": 80.00
+        },
+        {
+          "chemical_id": "SUPERMITE_AC",
+          "chemical_name": "SUPERMITE",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 1779.66,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "ANTIBAC_AC",
+          "chemical_name": "ANTIBAC 6GRAM",
+          "last_purchase_date": "2025-08-01",
+          "last_price": 4067.80,
+          "unit": "per kgs",
+          "quantity_last_purchase": 3.00
+        },
+        {
+          "chemical_id": "TOLZAR_AC",
+          "chemical_name": "TOLZAR",
+          "last_purchase_date": "2025-08-14",
+          "last_price": 1144.07,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "AGROWET_AC",
+          "chemical_name": "AGROWET",
+          "last_purchase_date": "2025-08-05",
+          "last_price": 521.19,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "PUREMAG_AC",
+          "chemical_name": "PURE MAG",
+          "last_purchase_date": "2026-05-02",
+          "last_price": 35.24,
+          "unit": "per kgs",
+          "quantity_last_purchase": 6000.00
+        },
+        {
+          "chemical_id": "ULTRAFERT_AC",
+          "chemical_name": "ULTRAFERT (19:19:19)",
+          "last_purchase_date": "2025-11-04",
+          "last_price": 114.29,
+          "unit": "per kgs",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "MOP_AC",
+          "chemical_name": "M.O.P.",
+          "last_purchase_date": "2026-01-12",
+          "last_price": 1714.29,
+          "unit": "per MTS",
+          "quantity_last_purchase": 80.00
+        },
+        {
+          "chemical_id": "DAP_AC",
+          "chemical_name": "DAP",
+          "last_purchase_date": "2025-11-04",
+          "last_price": 33862.44,
+          "unit": "per MTS",
+          "quantity_last_purchase": 0.45
+        },
+        {
+          "chemical_id": "NPKFERT_AC",
+          "chemical_name": "NPK FERTILIZER",
+          "last_purchase_date": "2026-02-09",
+          "last_price": 114.29,
+          "unit": "per kgs",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "SSP_AC",
+          "chemical_name": "SSP 50 KGS BAG",
+          "last_purchase_date": "2026-03-28",
+          "last_price": 461.90,
+          "unit": "per bag",
+          "quantity_last_purchase": 440.00
+        },
+        {
+          "chemical_id": "UREA_AC",
+          "chemical_name": "UREA 45 KGS BAGS",
+          "last_purchase_date": "2026-03-23",
+          "last_price": 257.14,
+          "unit": "per bag",
+          "quantity_last_purchase": 245.00
+        },
+        {
+          "chemical_id": "MOP50_AC",
+          "chemical_name": "MOP 50 KGS",
+          "last_purchase_date": "2026-03-13",
+          "last_price": 1723.81,
+          "unit": "per bag",
+          "quantity_last_purchase": 70.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 4,
+      "vendor_name": "GASSIN PIERRE PVT LTD",
+      "vendor_address": "2ND FLOOR, 46B, RAFI AHMED KIDWAI ROAD, KOLKATA, West Bengal, 700016",
+      "chemicals": [
+        {
+          "chemical_id": "GLMAG_GP",
+          "chemical_name": "GL MAGNESIUM",
+          "last_purchase_date": "2025-04-14",
+          "last_price": 612.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "GLZINC_GP",
+          "chemical_name": "G.L.Zinc",
+          "last_purchase_date": "2026-05-13",
+          "last_price": 720.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "LIQUIPOT_GP",
+          "chemical_name": "LIQUIPOT",
+          "last_purchase_date": "2025-12-18",
+          "last_price": 1080.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "LIQUIBOR_GP",
+          "chemical_name": "LIQUIBOR",
+          "last_purchase_date": "2026-03-06",
+          "last_price": 720.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 5,
+      "vendor_name": "HERBY CHEM",
+      "vendor_address": "Ac-218, Ground Floor, Samrat Apartment, Rabindrapally, Prafullakanan Kestopur, Kolkata, North Twenty Four Parganas",
+      "chemicals": [
+        {
+          "chemical_id": "CLOTHIRIGHT_HC",
+          "chemical_name": "CLOTHIRIGHT",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 5254.24,
+          "unit": "per kgs",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "SAMAG_HC",
+          "chemical_name": "SA-MAGNITUDE",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 2033.90,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "AGRIKIND_HC",
+          "chemical_name": "AGRIKINF DELTA",
+          "last_purchase_date": "2025-04-24",
+          "last_price": 949.15,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "EMAMECTIN_HC",
+          "chemical_name": "Emamectin Benzoate 1.9% EC (Bulk)",
+          "last_purchase_date": "2025-06-13",
+          "last_price": 1300.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "MINATO_HC",
+          "chemical_name": "MINATO-41",
+          "last_purchase_date": "2025-05-30",
+          "last_price": 220.34,
+          "unit": "per ltr",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "INDOTOP_HC",
+          "chemical_name": "INDOTOP",
+          "last_purchase_date": "2025-09-25",
+          "last_price": 2796.61,
+          "unit": "per kgs",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "METARID_HC",
+          "chemical_name": "METARID",
+          "last_purchase_date": "2025-07-16",
+          "last_price": 800.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "ELPIDA_HC",
+          "chemical_name": "ELPIDA",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 855.93,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "BIFENFORCE_HC",
+          "chemical_name": "BIFEN FORCE",
+          "last_purchase_date": "2026-03-27",
+          "last_price": 466.10,
+          "unit": "per ltr",
+          "quantity_last_purchase": 70.00
+        },
+        {
+          "chemical_id": "MAGISTER_HC",
+          "chemical_name": "Magister",
+          "last_purchase_date": "2026-04-27",
+          "last_price": 1779.66,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "SAINMECTIN_HC",
+          "chemical_name": "SA-INMECTIN 1 KG",
+          "last_purchase_date": "2026-04-30",
+          "last_price": 1351.69,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "AGRIKINDQLUX_HC",
+          "chemical_name": "AGRIKIND QLUX",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 373.73,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "GHCB_HC",
+          "chemical_name": "GREEN HARVEST CROP BOOSTER",
+          "last_purchase_date": "2026-05-19",
+          "last_price": 642.86,
+          "unit": "per kgs",
+          "quantity_last_purchase": 180.00
+        },
+        {
+          "chemical_id": "MONSUTEE_HC",
+          "chemical_name": "MONSUTEE",
+          "last_purchase_date": "2026-05-12",
+          "last_price": 2285.71,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 6,
+      "vendor_name": "VEE AAR INDUSTRIES",
+      "vendor_address": "4, Ratan Halder Lane, Liluah, Patuapara, Howrah",
+      "chemicals": [
+        {
+          "chemical_id": "HUMICACID_VAR",
+          "chemical_name": "Humic Acid",
+          "last_purchase_date": "2026-03-12",
+          "last_price": 269.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "ZEMINF_VAR",
+          "chemical_name": "ZEMIN-F",
+          "last_purchase_date": "2026-02-20",
+          "last_price": 310.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 7,
+      "vendor_name": "DKM AGRO BIOTECH PVT. LTD.",
+      "vendor_address": "Chunavati, Uttorpodrah, Andul Road, Sankrail, Howrah",
+      "chemicals": [
+        {
+          "chemical_id": "CONCEPT_DKM",
+          "chemical_name": "CONCEPT",
+          "last_purchase_date": "2026-04-15",
+          "last_price": 4635.05,
+          "unit": "per CS",
+          "quantity_last_purchase": 18.00
+        },
+        {
+          "chemical_id": "BLACKGOLDH_DKM",
+          "chemical_name": "Black Gold 'H'(500 GMX20)",
+          "last_purchase_date": "2026-05-21",
+          "last_price": 7167.24,
+          "unit": "per CS",
+          "quantity_last_purchase": 4.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 8,
+      "vendor_name": "JAY SHREE ENTERPRISES",
+      "vendor_address": "Holding No. 107/452/208/139, Ground Floor, Sevoke Road, Siliguri, Opp. Hotel Gateway, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "OCTAN_JSE",
+          "chemical_name": "OCTAN",
+          "last_purchase_date": "2026-04-07",
+          "last_price": 2300.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "NORMAX_JSE",
+          "chemical_name": "NORMAX",
+          "last_purchase_date": "2026-05-16",
+          "last_price": 2857.14,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "CRONUS_JSE",
+          "chemical_name": "CRONUS",
+          "last_purchase_date": "2025-05-23",
+          "last_price": 1398.31,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "COPPEROXY_JSE",
+          "chemical_name": "COPPER OXYCHLORIDE (Kgs)",
+          "last_purchase_date": "2025-05-29",
+          "last_price": 618.64,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "BIOGREEN_JSE",
+          "chemical_name": "BIO GREEN BORON",
+          "last_purchase_date": "2025-06-10",
+          "last_price": 567.80,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "KRUSH_JSE",
+          "chemical_name": "KRUSH 25EC (20 LTR)",
+          "last_purchase_date": "2026-01-07",
+          "last_price": 411.02,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "MILQUAT_JSE",
+          "chemical_name": "MILQUAT",
+          "last_purchase_date": "2025-08-29",
+          "last_price": 550.85,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "BRIZESTA_JSE",
+          "chemical_name": "BRIZESTA",
+          "last_purchase_date": "2026-05-15",
+          "last_price": 2950.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "CEDAAR_JSE",
+          "chemical_name": "CEDAAR",
+          "last_purchase_date": "2026-04-11",
+          "last_price": 254.24,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "GHCB_JSE",
+          "chemical_name": "GREEN HARVEST CROP BOOSTER",
+          "last_purchase_date": "2025-10-29",
+          "last_price": 638.10,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "ULKA505_JSE",
+          "chemical_name": "ULKA505",
+          "last_purchase_date": "2026-01-21",
+          "last_price": 570.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "PRECEDE_JSE",
+          "chemical_name": "PRECEDE",
+          "last_purchase_date": "2026-01-27",
+          "last_price": 508.47,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "CYGNUS_JSE",
+          "chemical_name": "CYGNUS",
+          "last_purchase_date": "2026-02-18",
+          "last_price": 2238.10,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "DHANVAN_JSE",
+          "chemical_name": "DHANVAN 20% EC",
+          "last_purchase_date": "2026-03-13",
+          "last_price": 237.29,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "EKALUXEC25_JSE",
+          "chemical_name": "EKALUX EC25",
+          "last_purchase_date": "2026-03-13",
+          "last_price": 420.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "TRADITION_JSE",
+          "chemical_name": "TRADITION",
+          "last_purchase_date": "2026-04-07",
+          "last_price": 1262.71,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "KF18_JSE",
+          "chemical_name": "KF-18",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 2627.12,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "MAXYLD_JSE",
+          "chemical_name": "MAXYLD",
+          "last_purchase_date": "2026-05-05",
+          "last_price": 435.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "LIGER_JSE",
+          "chemical_name": "LIGER",
+          "last_purchase_date": "2026-05-09",
+          "last_price": 1207.63,
+          "unit": "per ltr",
+          "quantity_last_purchase": 140.00
+        },
+        {
+          "chemical_id": "FIGHTER1LTR_JSE",
+          "chemical_name": "FIGHTER - 1 LTR",
+          "last_purchase_date": "2026-05-16",
+          "last_price": 885.59,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 9,
+      "vendor_name": "CHEMICALS (INDIA)",
+      "vendor_address": "H/546/11/254/244, Sevoke Road, Ward No -10, Siliguri, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "BAHBT_CI",
+          "chemical_name": "BAH-BT",
+          "last_purchase_date": "2025-04-03",
+          "last_price": 460.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 126.00
+        },
+        {
+          "chemical_id": "CLOTHIRIGHT_CI",
+          "chemical_name": "CLOTHIRIGHT",
+          "last_purchase_date": "2025-04-17",
+          "last_price": 3500.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 5.00
+        },
+        {
+          "chemical_id": "CEDAAR_CI",
+          "chemical_name": "CEDAAR",
+          "last_purchase_date": "2025-04-23",
+          "last_price": 220.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "BELTEXPERT_CI",
+          "chemical_name": "BELT EXPERT",
+          "last_purchase_date": "2025-05-22",
+          "last_price": 3500.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 55.00
+        },
+        {
+          "chemical_id": "BIOKAVACH_CI",
+          "chemical_name": "BIO KAVACH - 4000 (5 LTRS PACK)",
+          "last_purchase_date": "2026-03-16",
+          "last_price": 1490.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 15.00
+        },
+        {
+          "chemical_id": "MANGUMSL_CI",
+          "chemical_name": "MANGNUM SL",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 450.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 140.00
+        },
+        {
+          "chemical_id": "MAXSIL_CI",
+          "chemical_name": "MAXSIL",
+          "last_purchase_date": "2026-02-25",
+          "last_price": 550.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "AMINOCELGOLD_CI",
+          "chemical_name": "AMINOCEL GOLD",
+          "last_purchase_date": "2026-02-26",
+          "last_price": 300.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 10,
+      "vendor_name": "DHARMAJ CROP GUARD LTD.",
+      "vendor_address": "Plot No-408 to 411, Kerala GIDC Estate, Ahmedabad, Gujarat",
+      "chemicals": [
+        {
+          "chemical_id": "BIFENTHRIN_DCG",
+          "chemical_name": "BIFENTHRIN 10% EC (Bulk)",
+          "last_purchase_date": "2026-05-25",
+          "last_price": 370.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "DELTAMETHRIN_DCG",
+          "chemical_name": "DELTAMETHRIN 11% EC (Bulk)",
+          "last_purchase_date": "2026-05-25",
+          "last_price": 725.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "THIAMETHOXAM_DCG",
+          "chemical_name": "THIAMETHOXAM 12.6% + Lambda Cyhalothrin 9.5% Zc",
+          "last_purchase_date": "2026-05-23",
+          "last_price": 875.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 120.00
+        },
+        {
+          "chemical_id": "ACETAMIPRID_DCG",
+          "chemical_name": "ACETAMIPRID 20% SP (BULK)",
+          "last_purchase_date": "2026-04-29",
+          "last_price": 360.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "EMAMECTIN_DCG",
+          "chemical_name": "Emamectin Benzoate 1.9% EC (Bulk)",
+          "last_purchase_date": "2025-09-30",
+          "last_price": 406.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "IMIDACLOPRID_DCG",
+          "chemical_name": "IMIDACLOPRID 70% WG (BULK)",
+          "last_purchase_date": "2026-02-28",
+          "last_price": 875.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 105.00
+        },
+        {
+          "chemical_id": "TOLFENPYRAD_DCG",
+          "chemical_name": "TOLFENPYRAD 15% EC (BULK)",
+          "last_purchase_date": "2026-05-25",
+          "last_price": 695.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "PROPINEB_DCG",
+          "chemical_name": "PROPINEB 70% WP (BULK)",
+          "last_purchase_date": "2026-05-23",
+          "last_price": 565.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "PROPICONAZOLE_DCG",
+          "chemical_name": "PROPICONAZOLE 25% EC (BULK)",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 426.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "FIPRONIL_DCG",
+          "chemical_name": "FIPRONIL 40% + IMIDACLOPRID 40% WG (Bulk)",
+          "last_purchase_date": "2026-02-24",
+          "last_price": 2255.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 70.00
+        },
+        {
+          "chemical_id": "THIAMETHOXAMSG_DCG",
+          "chemical_name": "Thiamethoxam 75% SG (Bulk)",
+          "last_purchase_date": "2026-05-23",
+          "last_price": 875.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 120.00
+        },
+        {
+          "chemical_id": "CARBENDAZIM_DCG",
+          "chemical_name": "CARBENDAZIM 50% WP (Bulk)",
+          "last_purchase_date": "2026-05-07",
+          "last_price": 425.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "SILICONADJ_DCG",
+          "chemical_name": "SILICON ADJUVANT",
+          "last_purchase_date": "2026-05-23",
+          "last_price": 295.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "VALIDAMYCIN_DCG",
+          "chemical_name": "VALIDAMYCIN 3% L (Bulk)",
+          "last_purchase_date": "2026-03-21",
+          "last_price": 175.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "GLUFOSINATE_DCG",
+          "chemical_name": "GLUFOSINATE AMMONIUM 13.5% SL(Bulk)",
+          "last_purchase_date": "2026-05-04",
+          "last_price": 315.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "CHLORFENAPHY_DCG",
+          "chemical_name": "CHLORFENAPHY 24% SC",
+          "last_purchase_date": "2026-04-29",
+          "last_price": 950.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "FIPRONIL_SC_DCG",
+          "chemical_name": "Fipronil 18.87% SC (BULK)",
+          "last_purchase_date": "2026-03-02",
+          "last_price": 980.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "NOVALURON_DCG",
+          "chemical_name": "Novaluron 5.25% + Emamectin Benzoate 0.9% Sc",
+          "last_purchase_date": "2025-10-29",
+          "last_price": 885.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "DINOTEFURAN_DCG",
+          "chemical_name": "DINOTEFURAN 20% SG (BULK)",
+          "last_purchase_date": "2025-09-24",
+          "last_price": 535.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 320.00
+        },
+        {
+          "chemical_id": "CLOTHIANIDIN_DCG",
+          "chemical_name": "CLOTHIANIDIN 50% WG (Bulk)",
+          "last_purchase_date": "2025-09-24",
+          "last_price": 1875.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 75.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 11,
+      "vendor_name": "JOSHI AGROCHEM PHARMA PVT LTD",
+      "vendor_address": "812, TOPIWALA CENTRE, MUMBAI",
+      "chemicals": [
+        {
+          "chemical_id": "CAMAGBO_JAP",
+          "chemical_name": "Calcium+Magnesium+Boron",
+          "last_purchase_date": "2026-05-04",
+          "last_price": 225.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "CHELZINC_JAP",
+          "chemical_name": "CHELATED ZINC",
+          "last_purchase_date": "2026-05-07",
+          "last_price": 170.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "DISODIUMOCTAB_JAP",
+          "chemical_name": "DI SODIUM OCTABORATE",
+          "last_purchase_date": "2025-07-30",
+          "last_price": 175.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 400.00
+        },
+        {
+          "chemical_id": "SUPERPOTASSHUMFLAKES_JAP",
+          "chemical_name": "Super Potassium Humate Flakes",
+          "last_purchase_date": "2026-02-12",
+          "last_price": 65.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "POTASSFULVPOW_JAP",
+          "chemical_name": "POTASSIUM FULVATE POWDER",
+          "last_purchase_date": "2026-02-12",
+          "last_price": 75.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "FERTILIZERLIQ_JAP",
+          "chemical_name": "FERTILIZER LIQUED",
+          "last_purchase_date": "2026-05-14",
+          "last_price": 210.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 12,
+      "vendor_name": "NILESH TRADING CO",
+      "vendor_address": "H/25/624/436, B.D Road, Siliguri, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "SSP_NTC",
+          "chemical_name": "SSP",
+          "last_purchase_date": "2025-04-11",
+          "last_price": 8857.14,
+          "unit": "per MTS",
+          "quantity_last_purchase": 15.00
+        },
+        {
+          "chemical_id": "KLINXL_NTC",
+          "chemical_name": "KLIN XL",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 340.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "MITIGATE_NTC",
+          "chemical_name": "MITIGATE",
+          "last_purchase_date": "2026-02-17",
+          "last_price": 595.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "MAXYLD_NTC",
+          "chemical_name": "MAXYLD",
+          "last_purchase_date": "2025-05-23",
+          "last_price": 405.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "EM1_NTC",
+          "chemical_name": "EM-1",
+          "last_purchase_date": "2026-01-23",
+          "last_price": 939.06,
+          "unit": "per kgs",
+          "quantity_last_purchase": 64.00
+        },
+        {
+          "chemical_id": "DELTROM_NTC",
+          "chemical_name": "DELTROM",
+          "last_purchase_date": "2026-01-29",
+          "last_price": 1246.38,
+          "unit": "per ltr",
+          "quantity_last_purchase": 75.00
+        },
+        {
+          "chemical_id": "POLYHALITE_NTC",
+          "chemical_name": "POLY HALITE",
+          "last_purchase_date": "2025-12-09",
+          "last_price": 26666.67,
+          "unit": "per MTS",
+          "quantity_last_purchase": 6.00
+        },
+        {
+          "chemical_id": "RAZE_NTC",
+          "chemical_name": "RAZE",
+          "last_purchase_date": "2026-01-15",
+          "last_price": 704.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "BORNEO_NTC",
+          "chemical_name": "BORNEO",
+          "last_purchase_date": "2026-01-15",
+          "last_price": 4040.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 5.00
+        },
+        {
+          "chemical_id": "BLITOX_NTC",
+          "chemical_name": "BLITOX",
+          "last_purchase_date": "2026-01-15",
+          "last_price": 620.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "SUPHAMX_NTC",
+          "chemical_name": "SUPHAM AX",
+          "last_purchase_date": "2026-01-15",
+          "last_price": 53.16,
+          "unit": "per kgs",
+          "quantity_last_purchase": 125.00
+        },
+        {
+          "chemical_id": "INDOFIL_NTC",
+          "chemical_name": "INDOFIL",
+          "last_purchase_date": "2026-01-27",
+          "last_price": 296.25,
+          "unit": "per kgs",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "SLAYERFS_NTC",
+          "chemical_name": "SLAYER FS",
+          "last_purchase_date": "2026-01-16",
+          "last_price": 1167.50,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "SULFINGOLD_NTC",
+          "chemical_name": "SULFIN GOLD",
+          "last_purchase_date": "2026-01-21",
+          "last_price": 105.45,
+          "unit": "per kgs",
+          "quantity_last_purchase": 550.00
+        },
+        {
+          "chemical_id": "ZURA24D_NTC",
+          "chemical_name": "ZURA 24D 58%",
+          "last_purchase_date": "2026-01-23",
+          "last_price": 305.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "CONEOPOWER_NTC",
+          "chemical_name": "CONEO POWER",
+          "last_purchase_date": "2026-01-23",
+          "last_price": 435.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "CATALYST_NTC",
+          "chemical_name": "CATALYST",
+          "last_purchase_date": "2026-01-24",
+          "last_price": 278.14,
+          "unit": "per ltr",
+          "quantity_last_purchase": 360.00
+        },
+        {
+          "chemical_id": "BADAL_NTC",
+          "chemical_name": "BADAL",
+          "last_purchase_date": "2026-01-27",
+          "last_price": 9000.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 9.00
+        },
+        {
+          "chemical_id": "BILBOB505_NTC",
+          "chemical_name": "BILBO B-505",
+          "last_purchase_date": "2026-02-17",
+          "last_price": 478.81,
+          "unit": "per ltr",
+          "quantity_last_purchase": 48.00
+        },
+        {
+          "chemical_id": "WILOGOR_NTC",
+          "chemical_name": "WILOGOR",
+          "last_purchase_date": "2026-03-07",
+          "last_price": 420.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "SOLOMON_NTC",
+          "chemical_name": "SOLOMON",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 1840.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 2.50
+        },
+        {
+          "chemical_id": "FERIO_NTC",
+          "chemical_name": "FERIO",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 456.25,
+          "unit": "per ltr",
+          "quantity_last_purchase": 80.00
+        },
+        {
+          "chemical_id": "SULFEXGOLD_NTC",
+          "chemical_name": "SULFEX GOLD",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 110.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 125.00
+        },
+        {
+          "chemical_id": "WILLOMITE_NTC",
+          "chemical_name": "WILLOMITE",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 728.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "ACTARA_NTC",
+          "chemical_name": "ACTARA",
+          "last_purchase_date": "2026-01-30",
+          "last_price": 1326.67,
+          "unit": "per kgs",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "ELPIDA_NTC",
+          "chemical_name": "ELPIDA",
+          "last_purchase_date": "2026-02-09",
+          "last_price": 850.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "DHANVAN_NTC",
+          "chemical_name": "DHANVAN 20% EC",
+          "last_purchase_date": "2026-02-17",
+          "last_price": 233.05,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "SUPERKILLER_NTC",
+          "chemical_name": "SUPER KILLER",
+          "last_purchase_date": "2026-02-26",
+          "last_price": 453.39,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "KZITE5LTR_NTC",
+          "chemical_name": "K-ZITE -5 LTR",
+          "last_purchase_date": "2026-04-29",
+          "last_price": 640.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "KRUP_NTC",
+          "chemical_name": "KRUP",
+          "last_purchase_date": "2026-04-30",
+          "last_price": 225.42,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "KAYN58_NTC",
+          "chemical_name": "KAY-N 58%",
+          "last_purchase_date": "2026-05-12",
+          "last_price": 210.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 300.00
+        },
+        {
+          "chemical_id": "UREAIPL_NTC",
+          "chemical_name": "UREA IPL",
+          "last_purchase_date": "2026-05-20",
+          "last_price": 334.31,
+          "unit": "per bag",
+          "quantity_last_purchase": 245.00
+        },
+        {
+          "chemical_id": "MOP_NTC",
+          "chemical_name": "M.O.P.",
+          "last_purchase_date": "2026-04-16",
+          "last_price": 35238.10,
+          "unit": "per MTS",
+          "quantity_last_purchase": 12.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 13,
+      "vendor_name": "MANGALA SUPPLY & AGENCIES PVT. LTD",
+      "vendor_address": "6A, CLIVE ROW, 4TH FLOOR, ROOM NO-6/5, Kolkata",
+      "chemicals": [
+        {
+          "chemical_id": "MOP_MSA",
+          "chemical_name": "M.O.P.",
+          "last_purchase_date": "2026-02-07",
+          "last_price": 33428.57,
+          "unit": "per MTS",
+          "quantity_last_purchase": 11.00
+        },
+        {
+          "chemical_id": "UREA_MSA",
+          "chemical_name": "Urea",
+          "last_purchase_date": "2026-04-30",
+          "last_price": 5629.52,
+          "unit": "per MTS",
+          "quantity_last_purchase": 11.025
+        },
+        {
+          "chemical_id": "SSP_MSA",
+          "chemical_name": "SSP",
+          "last_purchase_date": "2026-05-21",
+          "last_price": 12333.33,
+          "unit": "per MTS",
+          "quantity_last_purchase": 11.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 14,
+      "vendor_name": "SUBHAS CHANDRA SAHA",
+      "vendor_address": "H/3/5, Opposit Old Dooars Bus Stand, Bidhan Road, Siliguri, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "KIPRO_SCS",
+          "chemical_name": "KIPRO",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 4322.03,
+          "unit": "per kgs",
+          "quantity_last_purchase": 32.00
+        },
+        {
+          "chemical_id": "EKKA_SCS",
+          "chemical_name": "EKKA",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 550.85,
+          "unit": "per kgs",
+          "quantity_last_purchase": 34.00
+        },
+        {
+          "chemical_id": "TORPIDPRO1_SCS",
+          "chemical_name": "TORPID PRO-1",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 508.47,
+          "unit": "per kgs",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "THERON_SCS",
+          "chemical_name": "THERON",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 322.03,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "ULTIMOSUPER_SCS",
+          "chemical_name": "ULTIMO SUPER",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 1059.32,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "LYPUS_SCS",
+          "chemical_name": "LYPUS",
+          "last_purchase_date": "2025-04-22",
+          "last_price": 3813.56,
+          "unit": "per kgs",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "HEXACORNSUPER_SCS",
+          "chemical_name": "HEXACORN SUPER",
+          "last_purchase_date": "2025-12-31",
+          "last_price": 177.97,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "GOLEE_SCS",
+          "chemical_name": "GOLEE",
+          "last_purchase_date": "2025-05-22",
+          "last_price": 343.22,
+          "unit": "per ltr",
+          "quantity_last_purchase": 110.00
+        },
+        {
+          "chemical_id": "RILLION_SCS",
+          "chemical_name": "RILLION",
+          "last_purchase_date": "2025-06-26",
+          "last_price": 974.58,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "WILICON_SCS",
+          "chemical_name": "WILICON",
+          "last_purchase_date": "2025-08-29",
+          "last_price": 762.71,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "WILTOX_SCS",
+          "chemical_name": "WILTOX",
+          "last_purchase_date": "2026-02-28",
+          "last_price": 745.76,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "PLANOFIX_SCS",
+          "chemical_name": "PLANOFIX",
+          "last_purchase_date": "2025-05-22",
+          "last_price": 830.51,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "ZURA_SCS",
+          "chemical_name": "ZURA",
+          "last_purchase_date": "2026-04-20",
+          "last_price": 266.95,
+          "unit": "per ltr",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "TATABAHAR_SCS",
+          "chemical_name": "TATA BAHAR",
+          "last_purchase_date": "2025-05-22",
+          "last_price": 723.81,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "TAKUMI_SCS",
+          "chemical_name": "Takumi (Kgs)",
+          "last_purchase_date": "2025-06-05",
+          "last_price": 4440.68,
+          "unit": "per kgs",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "TAFGOR_SCS",
+          "chemical_name": "TAFGOR",
+          "last_purchase_date": "2025-06-04",
+          "last_price": 491.53,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "HELICO1LTR_SCS",
+          "chemical_name": "HELICO-1 LTR",
+          "last_purchase_date": "2025-06-04",
+          "last_price": 847.46,
+          "unit": "per ltr",
+          "quantity_last_purchase": 70.00
+        },
+        {
+          "chemical_id": "SHERWIL_SCS",
+          "chemical_name": "SHERWIL",
+          "last_purchase_date": "2025-08-27",
+          "last_price": 3305.08,
+          "unit": "per kgs",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "AVTAR_SCS",
+          "chemical_name": "Avtar (KG)",
+          "last_purchase_date": "2025-06-05",
+          "last_price": 779.66,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "DIPLELTR_SCS",
+          "chemical_name": "DIPLE-L 5 Ltr.",
+          "last_purchase_date": "2025-06-05",
+          "last_price": 1071.43,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "TAGPOLL_SCS",
+          "chemical_name": "TAGPOLL",
+          "last_purchase_date": "2025-08-30",
+          "last_price": 4703.39,
+          "unit": "per ltr",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "ANTENNA_SCS",
+          "chemical_name": "ANTENNA",
+          "last_purchase_date": "2025-06-16",
+          "last_price": 635.59,
+          "unit": "per kgs",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "OXYGUARD_SCS",
+          "chemical_name": "OXYGUARD",
+          "last_purchase_date": "2025-06-16",
+          "last_price": 1025.42,
+          "unit": "per ltr",
+          "quantity_last_purchase": 18.00
+        },
+        {
+          "chemical_id": "INDOTOP_SCS",
+          "chemical_name": "INDOTOP",
+          "last_purchase_date": "2025-06-16",
+          "last_price": 2966.10,
+          "unit": "per kgs",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "BLITOXKGS_SCS",
+          "chemical_name": "BLITOX - 25 KGS",
+          "last_purchase_date": "2025-07-11",
+          "last_price": 673.73,
+          "unit": "per kgs",
+          "quantity_last_purchase": 25.00
+        },
+        {
+          "chemical_id": "VALXTRA5LTR_SCS",
+          "chemical_name": "VALXTRA - 5 LTR",
+          "last_purchase_date": "2025-07-12",
+          "last_price": 662.71,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "SMACK5LTR_SCS",
+          "chemical_name": "SMACK-5 LTR",
+          "last_purchase_date": "2025-12-31",
+          "last_price": 381.36,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "FELON250GM_SCS",
+          "chemical_name": "FELON -250 GM",
+          "last_purchase_date": "2025-07-12",
+          "last_price": 1991.53,
+          "unit": "per kgs",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "SITARA20LTR_SCS",
+          "chemical_name": "SITARA 20 LTR",
+          "last_purchase_date": "2025-07-12",
+          "last_price": 177.97,
+          "unit": "per ltr",
+          "quantity_last_purchase": 160.00
+        },
+        {
+          "chemical_id": "VALXTRA1LTR_SCS",
+          "chemical_name": "VALXTRA - 1 LTR",
+          "last_purchase_date": "2025-07-12",
+          "last_price": 662.71,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "ZANET1LTR_SCS",
+          "chemical_name": "ZANET-1 LTR",
+          "last_purchase_date": "2025-12-31",
+          "last_price": 1754.24,
+          "unit": "per ltr",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "DZIRE_SCS",
+          "chemical_name": "DZIRE",
+          "last_purchase_date": "2025-07-12",
+          "last_price": 1991.53,
+          "unit": "per kgs",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "COMPANION1KG_SCS",
+          "chemical_name": "COMPANION - 1 KG",
+          "last_purchase_date": "2025-07-11",
+          "last_price": 423.73,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "CEDAAR_SCS",
+          "chemical_name": "CEDAAR",
+          "last_purchase_date": "2026-04-20",
+          "last_price": 260.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "BLITOX_SCS",
+          "chemical_name": "BLITOX",
+          "last_purchase_date": "2025-07-11",
+          "last_price": 673.73,
+          "unit": "per kgs",
+          "quantity_last_purchase": 25.00
+        },
+        {
+          "chemical_id": "ELPIDA_SCS",
+          "chemical_name": "ELPIDA",
+          "last_purchase_date": "2026-01-24",
+          "last_price": 915.25,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "GLV71_SCS",
+          "chemical_name": "GLV-71-1000",
+          "last_purchase_date": "2025-06-26",
+          "last_price": 423.73,
+          "unit": "per kgs",
+          "quantity_last_purchase": 70.00
+        },
+        {
+          "chemical_id": "NOVEMA500ML_SCS",
+          "chemical_name": "NOVEMA-500 ML",
+          "last_purchase_date": "2025-06-20",
+          "last_price": 1398.31,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "WARLOAD_SCS",
+          "chemical_name": "WARLOAD",
+          "last_purchase_date": "2025-06-20",
+          "last_price": 1677.97,
+          "unit": "per kgs",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "AGENTPLUS_SCS",
+          "chemical_name": "AGENT PLUS",
+          "last_purchase_date": "2025-06-20",
+          "last_price": 402.54,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "TAGPRIDE70_SCS",
+          "chemical_name": "TAGPRIDE-70% 30 GRM",
+          "last_purchase_date": "2025-06-20",
+          "last_price": 525.42,
+          "unit": "per kgs",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "TAGFUN5LTR_SCS",
+          "chemical_name": "TAG FUN-5 LTR",
+          "last_purchase_date": "2025-06-26",
+          "last_price": 1228.81,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "DELTROM_SCS",
+          "chemical_name": "DELTROM",
+          "last_purchase_date": "2026-04-20",
+          "last_price": 974.58,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "KONTROL_SCS",
+          "chemical_name": "KONTROL",
+          "last_purchase_date": "2025-08-29",
+          "last_price": 686.44,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "TAGXONEGOLD_SCS",
+          "chemical_name": "TAGXONE GOLD",
+          "last_purchase_date": "2025-08-30",
+          "last_price": 2415.25,
+          "unit": "per kgs",
+          "quantity_last_purchase": 4.00
+        },
+        {
+          "chemical_id": "TRADITION_SCS",
+          "chemical_name": "TRADITION",
+          "last_purchase_date": "2025-08-30",
+          "last_price": 1254.24,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "PYROWIL_SCS",
+          "chemical_name": "PYROWIL",
+          "last_purchase_date": "2025-08-30",
+          "last_price": 2288.14,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "FIGHTER1LTR_SCS",
+          "chemical_name": "FIGHTER - 1 LTR",
+          "last_purchase_date": "2025-12-31",
+          "last_price": 1822.03,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "TAGZOLE1LTR_SCS",
+          "chemical_name": "TAGZOLE - 1 LTR",
+          "last_purchase_date": "2025-10-04",
+          "last_price": 635.59,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "ANTIBAC6GRAM_SCS",
+          "chemical_name": "ANTIBAC 6GRAM",
+          "last_purchase_date": "2025-10-04",
+          "last_price": 3728.81,
+          "unit": "per kgs",
+          "quantity_last_purchase": 6.00
+        },
+        {
+          "chemical_id": "BOUNTEE_SCS",
+          "chemical_name": "BOUNTEE",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 2669.49,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "DHANUSTIN1KG_SCS",
+          "chemical_name": "DHANUSTIN - 1 KG",
+          "last_purchase_date": "2025-10-04",
+          "last_price": 525.42,
+          "unit": "per kgs",
+          "quantity_last_purchase": 25.00
+        },
+        {
+          "chemical_id": "PROMINENT500GM_SCS",
+          "chemical_name": "PROMINENT - 500 GM",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 1525.42,
+          "unit": "per kgs",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "CHALLENGER25_SCS",
+          "chemical_name": "CHALLENGER 25% - 500 ML",
+          "last_purchase_date": "2026-05-02",
+          "last_price": 449.15,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "WILLOSATE41_SCS",
+          "chemical_name": "WILLOSATE-41%",
+          "last_purchase_date": "2025-12-09",
+          "last_price": 270.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 80.00
+        },
+        {
+          "chemical_id": "HELPER_SCS",
+          "chemical_name": "HELPER",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 105.93,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "WILLOMITE_SCS",
+          "chemical_name": "WILLOMITE",
+          "last_purchase_date": "2026-01-24",
+          "last_price": 639.83,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "WIZSULF_SCS",
+          "chemical_name": "WIZSULF",
+          "last_purchase_date": "2026-02-28",
+          "last_price": 122.88,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "POKET_SCS",
+          "chemical_name": "POKET",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 1000.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "TAGQUIT_SCS",
+          "chemical_name": "TAGQUIT",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 194.92,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "HOSI_SCS",
+          "chemical_name": "HOSI",
+          "last_purchase_date": "2025-12-08",
+          "last_price": 466.67,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "COPOXY_SCS",
+          "chemical_name": "COPOXY",
+          "last_purchase_date": "2025-12-09",
+          "last_price": 652.54,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "TAGTURBOPLUS_SCS",
+          "chemical_name": "TAG TURBO PLUS",
+          "last_purchase_date": "2025-12-09",
+          "last_price": 1385.59,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "LICER_SCS",
+          "chemical_name": "LICER",
+          "last_purchase_date": "2025-12-12",
+          "last_price": 2850.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "LIGER_SCS",
+          "chemical_name": "LIGER",
+          "last_purchase_date": "2026-04-21",
+          "last_price": 2372.88,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "MONSUTEE_SCS",
+          "chemical_name": "MONSUTEE",
+          "last_purchase_date": "2026-03-19",
+          "last_price": 2333.33,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "CEASEMITE_SCS",
+          "chemical_name": "CEASEMITE",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 1203.39,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "BORNEO_SCS",
+          "chemical_name": "BORNEO",
+          "last_purchase_date": "2026-03-19",
+          "last_price": 4406.78,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        },
+        {
+          "chemical_id": "CYTOZYME5LTR_SCS",
+          "chemical_name": "CYTOZYME 5 LTR",
+          "last_purchase_date": "2026-03-19",
+          "last_price": 453.39,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "PHYTONOL_SCS",
+          "chemical_name": "PHYTONOL",
+          "last_purchase_date": "2026-03-20",
+          "last_price": 550.85,
+          "unit": "per ltr",
+          "quantity_last_purchase": 40.00
+        },
+        {
+          "chemical_id": "CARMEL1KG_SCS",
+          "chemical_name": "CARMEL-1KG",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 364.41,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "KAYN58_SCS",
+          "chemical_name": "KAY-N 58%",
+          "last_purchase_date": "2026-04-20",
+          "last_price": 250.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "MANIK1KG_SCS",
+          "chemical_name": "MANIK-1 KG",
+          "last_purchase_date": "2026-04-11",
+          "last_price": 955.93,
+          "unit": "per ltr",
+          "quantity_last_purchase": 24.00
+        },
+        {
+          "chemical_id": "KF18_SCS",
+          "chemical_name": "KF-18",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 2542.37,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "WILLOSATE71_SCS",
+          "chemical_name": "WILLOSATE-71%",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 436.44,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "KZITE5LTR_SCS",
+          "chemical_name": "K-ZITE -5 LTR",
+          "last_purchase_date": "2026-04-11",
+          "last_price": 590.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "ZURA24D58_SCS",
+          "chemical_name": "ZURA 24D 58%",
+          "last_purchase_date": "2026-04-20",
+          "last_price": 264.41,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "BIOZYMTEA_SCS",
+          "chemical_name": "BIOZYME TEA",
+          "last_purchase_date": "2026-05-16",
+          "last_price": 561.90,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "SAINMECTIN1KG_SCS",
+          "chemical_name": "SA-INMECTIN 1 KG",
+          "last_purchase_date": "2026-05-16",
+          "last_price": 1326.27,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 15,
+      "vendor_name": "SRI BALAJI KRISHI BHANDAR",
+      "vendor_address": "Ward No 27, Ananda Mohan Basu Road, Siliguri, Near Marigold Apartment, Darjeeling",
+      "chemicals": [
+        {
+          "chemical_id": "UREA_SRKB",
+          "chemical_name": "Urea",
+          "last_purchase_date": "2026-04-27",
+          "last_price": 5629.52,
+          "unit": "per MTS",
+          "quantity_last_purchase": 11.025
+        },
+        {
+          "chemical_id": "PHOSPHIDOL_SRKB",
+          "chemical_name": "PHOSPHIDOL",
+          "last_purchase_date": "2026-04-10",
+          "last_price": 237.29,
+          "unit": "per ltr",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "IFFCONANOUREA_SRKB",
+          "chemical_name": "IFFCO NANO UREA LIQUID 500 ML",
+          "last_purchase_date": "2025-05-31",
+          "last_price": 195.24,
+          "unit": "per pcs",
+          "quantity_last_purchase": 192.00
+        },
+        {
+          "chemical_id": "BHARATUREA_SRKB",
+          "chemical_name": "Bharat Urea HURL 45 Kgs",
+          "last_purchase_date": "2026-04-25",
+          "last_price": 5.62,
+          "unit": "per kgs",
+          "quantity_last_purchase": 11025.00
+        },
+        {
+          "chemical_id": "UREAMUKTA_SRKB",
+          "chemical_name": "UREA MUKTA 45KGS",
+          "last_purchase_date": "2026-04-25",
+          "last_price": 5.62,
+          "unit": "per kgs",
+          "quantity_last_purchase": 11025.00
+        },
+        {
+          "chemical_id": "MOP_SRKB",
+          "chemical_name": "M.O.P.",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 34285.71,
+          "unit": "per MTS",
+          "quantity_last_purchase": 6.50
+        },
+        {
+          "chemical_id": "DAP_SRKB",
+          "chemical_name": "Dap",
+          "last_purchase_date": "2026-03-30",
+          "last_price": 25714.29,
+          "unit": "per MTS",
+          "quantity_last_purchase": 2.00
+        },
+        {
+          "chemical_id": "SSP_SRKB",
+          "chemical_name": "SSP",
+          "last_purchase_date": "2025-07-19",
+          "last_price": 10390.48,
+          "unit": "per MTS",
+          "quantity_last_purchase": 11.00
+        },
+        {
+          "chemical_id": "ZURA_SRKB",
+          "chemical_name": "ZURA",
+          "last_purchase_date": "2025-08-05",
+          "last_price": 272.88,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 16,
+      "vendor_name": "R. S. ENTERPRISES",
+      "vendor_address": "3, 3rd Floor, Bharat Bhawan, C. R. Avenue, Kolkata",
+      "chemicals": [
+        {
+          "chemical_id": "JERIK_RSE",
+          "chemical_name": "JERIK",
+          "last_purchase_date": "2025-04-04",
+          "last_price": 1850.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "CATALYST_RSE",
+          "chemical_name": "CATALYST",
+          "last_purchase_date": "2026-05-07",
+          "last_price": 135.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "MAGISTER_RSE",
+          "chemical_name": "Magister",
+          "last_purchase_date": "2026-05-09",
+          "last_price": 1770.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 17,
+      "vendor_name": "S L ENTERPRISE",
+      "vendor_address": "SAMRESH BOSE SARANI, EAST MILANPALLY, SILIGURI",
+      "chemicals": [
+        {
+          "chemical_id": "STIKWELL_SLE",
+          "chemical_name": "STIKWELL",
+          "last_purchase_date": "2026-01-23",
+          "last_price": 690.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "FOLIARSPRAY_SLE",
+          "chemical_name": "Foliar Spray (Algro)",
+          "last_purchase_date": "2026-04-07",
+          "last_price": 320.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "ENVITA_SLE",
+          "chemical_name": "ENVITA",
+          "last_purchase_date": "2026-04-07",
+          "last_price": 49.00,
+          "unit": "per NOS",
+          "quantity_last_purchase": 200.00
+        },
+        {
+          "chemical_id": "SPRAYADJUVANTSTIKWELL_SLE",
+          "chemical_name": "SPRAY ADJUVANT (STIKWELL)",
+          "last_purchase_date": "2026-01-23",
+          "last_price": 690.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 50.00
+        },
+        {
+          "chemical_id": "COMPOSTCULTUREASSURE_SLE",
+          "chemical_name": "Compost Culture (Assure)",
+          "last_purchase_date": "2025-06-26",
+          "last_price": 6200.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 8.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 18,
+      "vendor_name": "ALIA BIOSYS",
+      "vendor_address": "81/1, Srp Koil Street, Agaram, Chennai",
+      "chemicals": [
+        {
+          "chemical_id": "BIOHUME20_AB",
+          "chemical_name": "BIOHUME-20 (BIO NUTRIENTS)",
+          "last_purchase_date": "2026-02-24",
+          "last_price": 575.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 100.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 19,
+      "vendor_name": "SUPER AGRO INDIA PVT. LTD",
+      "vendor_address": "168/2, 1st Floor, Lenin Sarani, Chandi Chowk, Kolkata",
+      "chemicals": [
+        {
+          "chemical_id": "FOLIMEAL25KGS_SAI",
+          "chemical_name": "FOLIMEAL-25 KGS",
+          "last_purchase_date": "2026-04-25",
+          "last_price": 3191.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 12.00
+        },
+        {
+          "chemical_id": "TEASPLLIQ5LTR_SAI",
+          "chemical_name": "TEA SPL LIQ -5LTR",
+          "last_purchase_date": "2026-04-27",
+          "last_price": 2487.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "TRICOSTAR_SAI",
+          "chemical_name": "TRICOSTAR",
+          "last_purchase_date": "2026-01-15",
+          "last_price": 137.80,
+          "unit": "per kgs",
+          "quantity_last_purchase": 100.00
+        },
+        {
+          "chemical_id": "SANJIBAN_SAI",
+          "chemical_name": "SANJIBAN-",
+          "last_purchase_date": "2026-02-25",
+          "last_price": 1624.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 20.00
+        },
+        {
+          "chemical_id": "ORGANICMANURE_SAI",
+          "chemical_name": "ORGANIC MANURE",
+          "last_purchase_date": "2026-02-12",
+          "last_price": 15.26,
+          "unit": "per kgs",
+          "quantity_last_purchase": 25000.00
+        },
+        {
+          "chemical_id": "ORMACOMINORGANICMANURE_SAI",
+          "chemical_name": "ORMACOMIN(ORGANIC MANURE)",
+          "last_purchase_date": "2026-04-19",
+          "last_price": 768.00,
+          "unit": "per bag",
+          "quantity_last_purchase": 500.00
+        },
+        {
+          "chemical_id": "CHELAACTIVE5KG_SAI",
+          "chemical_name": "CHELA ACTIVE 5 KG",
+          "last_purchase_date": "2026-05-09",
+          "last_price": 2927.00,
+          "unit": "per kgs",
+          "quantity_last_purchase": 20.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 20,
+      "vendor_name": "SAWARIYA TRADING COMPANY",
+      "vendor_address": "Kh. No. 12/27, Ground Floor, Village Budhpur, New Delhi, Near Cloud Farm, North Delhi",
+      "chemicals": [
+        {
+          "chemical_id": "MAGNUMSL_STC",
+          "chemical_name": "MAGNUM SL",
+          "last_purchase_date": "2026-02-23",
+          "last_price": 450.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 60.00
+        },
+        {
+          "chemical_id": "BIOKAVACH4000_STC",
+          "chemical_name": "BIO KAVACH - 4000 (5 LTRS PACK)",
+          "last_purchase_date": "2026-05-05",
+          "last_price": 1550.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 10.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 21,
+      "vendor_name": "RATHI ENTERPRISES",
+      "vendor_address": "P.O BIRPARA, DIST. ALIPURDUAR",
+      "chemicals": [
+        {
+          "chemical_id": "DOLOMITEPOWDER_RAT",
+          "chemical_name": "DOLOMITE POWDER",
+          "last_purchase_date": "2026-02-16",
+          "last_price": 2780.00,
+          "unit": "per MTS",
+          "quantity_last_purchase": 25.00
+        }
+      ]
+    },
+    {
+      "vendor_id": 22,
+      "vendor_name": "SHREE BALAJI LOGISTICS",
+      "vendor_address": "67/43, ROOM NO-202, STRAND ROAD, CROSS ROAD NO-08, KOLKATA, West Bengal, 700006",
+      "chemicals": [
+        {
+          "chemical_id": "ORGANICM_SBL",
+          "chemical_name": "ORGANIC M",
+          "last_purchase_date": "2025-04-24",
+          "last_price": 2400.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 30.00
+        },
+        {
+          "chemical_id": "NEEMAXINGOLD_SBL",
+          "chemical_name": "Neemaxin Gold",
+          "last_purchase_date": "2025-06-12",
+          "last_price": 2411.00,
+          "unit": "per ltr",
+          "quantity_last_purchase": 50.00
+        }
+      ]
+    }
+  ]
+}
