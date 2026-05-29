@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, RefreshCw, Settings, X, TrendingDown, TrendingUp } from 'lucide-react';
+import { Search, Plus, RefreshCw, Settings, X, TrendingDown, TrendingUp, ChevronDown, Leaf } from 'lucide-react';
 
 // ============================================================================
 // INDEXEDDB SETUP - OFFLINE-FIRST DATA PERSISTENCE
@@ -197,7 +197,9 @@ export default function PriceNegotiationTracker() {
   const [searchVendor, setSearchVendor] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [results, setResults] = useState([]);
+  const [sortType, setSortType] = useState('price');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const [showLogPrice, setShowLogPrice] = useState(false);
   const [showEditPrice, setShowEditPrice] = useState(false);
@@ -380,7 +382,7 @@ export default function PriceNegotiationTracker() {
   }, [db, prices, vendors]);
 
   // =========================================================================
-  // SEARCH & FILTERING
+  // SEARCH & FILTERING WITH IMPROVED SORTING
   // =========================================================================
 
   useEffect(() => {
@@ -433,17 +435,23 @@ export default function PriceNegotiationTracker() {
       filtered = [...searched, ...others];
     }
 
-    // Sort by price
+    // Apply sorting based on sortType
     filtered.sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.price_per_unit - b.price_per_unit;
-      } else {
-        return b.price_per_unit - a.price_per_unit;
+      let compareValue = 0;
+
+      if (sortType === 'price') {
+        compareValue = a.price_per_unit - b.price_per_unit;
+      } else if (sortType === 'date') {
+        compareValue = new Date(a.purchase_date) - new Date(b.purchase_date);
+      } else if (sortType === 'alphabetic') {
+        compareValue = a.chemical_name.localeCompare(b.chemical_name);
       }
+
+      return sortOrder === 'asc' ? compareValue : -compareValue;
     });
 
     setResults(filtered);
-  }, [searchChemical, searchVendor, prices, sortOrder]);
+  }, [searchChemical, searchVendor, prices, sortType, sortOrder]);
 
   // =========================================================================
   // ACTIONS
@@ -500,13 +508,19 @@ export default function PriceNegotiationTracker() {
 
     if (!vendorExists) {
       const newVendor = {
-        id: `vendor-${Date.now()}-${Math.random()}`,
+        id: `vendor-${Date.now()}`,
         name: logFormData.vendor,
         created_at: Date.now(),
-        last_modified: Date.now(),
         synced: false,
       };
       await dbOps.put(db, 'vendors', newVendor);
+      await dbOps.add(db, 'sync_queue', {
+        id: `sync-vendor-${Date.now()}`,
+        action: 'create_vendor',
+        payload: newVendor,
+        timestamp: Date.now(),
+        synced: false,
+      });
       setVendors([...vendors, newVendor]);
     }
 
@@ -514,22 +528,27 @@ export default function PriceNegotiationTracker() {
     const chemicalExists = chemicals.some(
       (c) => c.name.toLowerCase() === logFormData.chemical.toLowerCase()
     );
-    
+
     if (!chemicalExists) {
       const newChemical = {
-        id: `chem-${Date.now()}-${Math.random()}`,
+        id: `chem-${Date.now()}`,
         name: logFormData.chemical,
         created_at: Date.now(),
-        last_modified: Date.now(),
         synced: false,
       };
-    
       await dbOps.put(db, 'chemicals', newChemical);
-    
+      await dbOps.add(db, 'sync_queue', {
+        id: `sync-chem-${Date.now()}`,
+        action: 'create_chemical',
+        payload: newChemical,
+        timestamp: Date.now(),
+        synced: false,
+      });
       setChemicals([...chemicals, newChemical]);
     }
 
     setPrices([...prices, newPrice]);
+    setOfflineQueueCount((c) => c + 1);
     setLogFormData({
       chemical: '',
       vendor: '',
@@ -538,22 +557,11 @@ export default function PriceNegotiationTracker() {
       date: new Date().toISOString().split('T')[0],
     });
     setShowLogPrice(false);
-    setOfflineQueueCount((c) => c + 1);
     showToast('Price logged successfully', 'success');
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      const registration = await navigator.serviceWorker.ready;
-
-      try {
-        await registration.sync.register('sync-price-data');
-      } catch (err) {
-        console.error('Background sync registration failed:', err);
-      }
-    }
   };
 
   const handleEditPrice = async () => {
     if (
-      !editPriceData.id ||
       !editPriceData.chemical ||
       !editPriceData.vendor ||
       !editPriceData.price ||
@@ -565,25 +573,19 @@ export default function PriceNegotiationTracker() {
     }
 
     const updatedPrice = {
-      ...prices.find((p) => p.id === editPriceData.id),
+      id: editPriceData.id,
       chemical_name: editPriceData.chemical,
       vendor_name: editPriceData.vendor,
       price_per_unit: parseFloat(editPriceData.price),
       unit: editPriceData.unit || 'unit',
+      quantity: 1,
       purchase_date: editPriceData.date,
+      created_at: Date.now(),
       last_modified: Date.now(),
       synced: false,
     };
 
-    // Update in IndexedDB
-    const transaction = db.transaction(['prices'], 'readwrite');
-    const store = transaction.objectStore('prices');
-    await new Promise((resolve, reject) => {
-      const request = store.put(updatedPrice);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve();
-    });
-
+    await dbOps.put(db, 'prices', updatedPrice);
     await dbOps.add(db, 'sync_queue', {
       id: `sync-${Date.now()}`,
       action: 'update_price',
@@ -711,10 +713,11 @@ export default function PriceNegotiationTracker() {
     const curr = parseFloat(currentPrice);
     if (isNaN(curr)) return null;
 
+    // REVERSED LOGIC: if price < curr, it's a loss for the negotiator
     if (price < curr) {
-      return { type: 'lower', diff: (curr - price).toFixed(2) };
+      return { type: 'higher', diff: (curr - price).toFixed(2) };
     } else if (price > curr) {
-      return { type: 'higher', diff: (price - curr).toFixed(2) };
+      return { type: 'lower', diff: (price - curr).toFixed(2) };
     } else {
       return { type: 'equal' };
     }
@@ -730,188 +733,172 @@ export default function PriceNegotiationTracker() {
   // =========================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-20 md:pb-0">
+    <div
+      className="min-h-screen bg-slate-50"
+      onClick={() => { setOpenDropdown(null); setShowSortMenu(false); }}
+    >
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-white z-50 animate-pulse ${
-            toast.type === 'success'
-              ? 'bg-green-600'
-              : toast.type === 'error'
-              ? 'bg-red-600'
-              : toast.type === 'warning'
-              ? 'bg-amber-600'
-              : 'bg-blue-600'
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-2xl text-white text-sm font-semibold pointer-events-none ${
+            toast.type === 'success' ? 'bg-emerald-600'
+            : toast.type === 'error' ? 'bg-red-500'
+            : toast.type === 'warning' ? 'bg-amber-500'
+            : 'bg-slate-700'
           }`}
         >
+          {toast.type === 'success' && <span>✓</span>}
+          {toast.type === 'error' && <span>✗</span>}
+          {toast.type === 'warning' && <span>!</span>}
           {toast.message}
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Price Negotiator</h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Live negotiation tool • Offline-first PWA
-            </p>
+      <header className="bg-teal-700 sticky top-0 z-40 shadow-lg">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-teal-600 p-2 rounded-xl">
+              <Leaf size={18} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-white leading-tight">Price Negotiator</h1>
+              {garden && (
+                <p className="text-teal-200 text-xs leading-tight">{garden.name}</p>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            {offlineQueueCount > 0 && (
+              <span className="bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                {offlineQueueCount} pending
+              </span>
+            )}
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 hover:bg-slate-100 rounded-lg transition"
+              className={`p-2 rounded-xl transition ${showSettings ? 'bg-teal-600 text-white' : 'text-teal-200 hover:text-white hover:bg-teal-600'}`}
               title="Settings"
             >
-              <Settings size={20} className="text-slate-600" />
+              <Settings size={19} />
             </button>
             <button
               onClick={handleSync}
               disabled={syncStatus === 'syncing'}
-              className={`p-2 rounded-lg transition ${
-                syncStatus === 'syncing' ? 'bg-blue-50' : 'hover:bg-slate-100'
-              }`}
-              title="Manual sync"
+              className={`p-2 rounded-xl transition ${syncStatus === 'syncing' ? 'bg-teal-600 text-white' : 'text-teal-200 hover:text-white hover:bg-teal-600'}`}
+              title="Sync"
             >
-              <RefreshCw
-                size={20}
-                className={`${
-                  syncStatus === 'syncing'
-                    ? 'text-blue-600 animate-spin'
-                    : 'text-slate-600'
-                }`}
-              />
+              <RefreshCw size={19} className={syncStatus === 'syncing' ? 'animate-spin' : ''} />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-4 py-5 pb-24 md:pb-8">
+
         {/* Settings Panel */}
         {showSettings && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-blue-500">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-slate-900">Sync Status</h2>
+              <h2 className="font-semibold text-slate-800">Sync & Data Status</h2>
               <button
                 onClick={() => setShowSettings(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
-        
-            <div className="space-y-4 text-sm">
-              <div>
-                <p className="text-slate-600">
-                  <strong>Last Sync:</strong> {lastSyncTime ? lastSyncTime : 'Never'}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-xs text-slate-400 font-medium mb-1">Last Sync</p>
+                <p className="text-sm font-semibold text-slate-800 truncate">{lastSyncTime || 'Never'}</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-xs text-slate-400 font-medium mb-1">Pending</p>
+                <p className={`text-sm font-bold ${offlineQueueCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  {offlineQueueCount} record{offlineQueueCount !== 1 ? 's' : ''}
                 </p>
               </div>
-              <div>
-                <p className="text-slate-600">
-                  <strong>Pending Sync:</strong>{' '}
-                  <span
-                    className={
-                      offlineQueueCount > 0
-                        ? 'text-orange-600 font-semibold'
-                        : 'text-green-600'
-                    }
-                  >
-                    {offlineQueueCount} record{offlineQueueCount !== 1 ? 's' : ''}
-                  </span>
-                </p>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-xs text-slate-400 font-medium mb-1">Total Records</p>
+                <p className="text-sm font-bold text-slate-800">{prices.length}</p>
               </div>
-              <div>
-                <p className="text-slate-600">
-                  <strong>Total Records:</strong> {prices.length}
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-xs text-slate-400 font-medium mb-1">Status</p>
+                <p className={`text-sm font-bold ${
+                  syncStatus === 'idle' ? 'text-emerald-600'
+                  : syncStatus === 'syncing' ? 'text-blue-600'
+                  : syncStatus === 'success' ? 'text-emerald-600'
+                  : 'text-red-500'
+                }`}>
+                  {syncStatus === 'idle' && '● Ready'}
+                  {syncStatus === 'syncing' && '↻ Syncing...'}
+                  {syncStatus === 'success' && '✓ Synced'}
+                  {syncStatus === 'error' && '✗ Error'}
                 </p>
-              </div>
-              <div>
-                <p className="text-slate-600">
-                  <strong>Status:</strong>{' '}
-                  {syncStatus === 'idle' ? (
-                    <span className="text-green-600">Ready</span>
-                  ) : syncStatus === 'syncing' ? (
-                    <span className="text-blue-600">Syncing...</span>
-                  ) : syncStatus === 'success' ? (
-                    <span className="text-green-600">✓ Synced</span>
-                  ) : (
-                    <span className="text-red-600">✗ Error</span>
-                  )}
-                </p>
-              </div>
-                
-              <div className="border-t border-slate-200 pt-4">
-                <button
-                  onClick={() => {
-                    setShowSettings(false);
-                    const sorted = [...prices].sort((a, b) => {
-                      if (a.vendor_name !== b.vendor_name) {
-                        return a.vendor_name.localeCompare(b.vendor_name);
-                      }
-                      return a.chemical_name.localeCompare(b.chemical_name);
-                    });
-                    setResults(sorted);
-                    setSearchChemical('');
-                    setSearchVendor('');
-                  }}
-                  className="w-full bg-slate-600 hover:bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center gap-2"
-                >
-                  <Search size={16} />
-                  View Entire Dataset
-                </button>
               </div>
             </div>
+            <button
+              onClick={() => {
+                setShowSettings(false);
+                const sorted = [...prices].sort((a, b) => {
+                  if (a.vendor_name !== b.vendor_name) {
+                    return a.vendor_name.localeCompare(b.vendor_name);
+                  }
+                  return a.chemical_name.localeCompare(b.chemical_name);
+                });
+                setResults(sorted);
+                setSearchChemical('');
+                setSearchVendor('');
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white font-semibold py-2.5 px-4 rounded-xl transition text-sm"
+            >
+              <Search size={14} />
+              View Entire Dataset
+            </button>
           </div>
         )}
 
         {/* Search Panel */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border-l-4 border-indigo-500">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Search Prices</h2>
+        <div
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">Search Prices</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {/* Chemical Search */}
             <div className="relative">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Chemical Name
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Chemical
               </label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search chemical..."
                   value={searchChemical}
-                  onChange={(e) => {
-                    setSearchChemical(e.target.value);
-                    setOpenDropdown('chemical');
-                  }}
+                  onChange={(e) => { setSearchChemical(e.target.value); setOpenDropdown('chemical'); }}
                   onFocus={() => setOpenDropdown('chemical')}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition pr-10"
+                  className="w-full pl-4 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
                 {searchChemical ? (
                   <button
-                    onClick={() => {
-                      setSearchChemical('');
-                      setOpenDropdown(null);
-                    }}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    onClick={() => { setSearchChemical(''); setOpenDropdown(null); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    <X size={18} />
+                    <X size={14} />
                   </button>
                 ) : (
-                  <Search size={18} className="absolute right-3 top-2.5 text-slate-400" />
+                  <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 )}
               </div>
-              
               {openDropdown === 'chemical' && filteredChemicalOptions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
                   {filteredChemicalOptions.map((chem) => (
                     <div
                       key={chem.id}
-                      onClick={() => {
-                        setSearchChemical(chem.name);
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
+                      onClick={() => { setSearchChemical(chem.name); setOpenDropdown(null); }}
+                      className="px-4 py-2.5 hover:bg-teal-50 hover:text-teal-700 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-b-0 transition"
                     >
                       {chem.name}
                     </div>
@@ -922,46 +909,36 @@ export default function PriceNegotiationTracker() {
 
             {/* Vendor Search */}
             <div className="relative">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Vendor Name (Optional)
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Vendor <span className="text-slate-400 normal-case font-normal">(optional)</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search vendor..."
                   value={searchVendor}
-                  onChange={(e) => {
-                    setSearchVendor(e.target.value);
-                    setOpenDropdown('vendor');
-                  }}
+                  onChange={(e) => { setSearchVendor(e.target.value); setOpenDropdown('vendor'); }}
                   onFocus={() => setOpenDropdown('vendor')}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition pr-10"
+                  className="w-full pl-4 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
                 {searchVendor ? (
                   <button
-                    onClick={() => {
-                      setSearchVendor('');
-                      setOpenDropdown(null);
-                    }}
-                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    onClick={() => { setSearchVendor(''); setOpenDropdown(null); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    <X size={18} />
+                    <X size={14} />
                   </button>
                 ) : (
-                  <Search size={18} className="absolute right-3 top-2.5 text-slate-400" />
+                  <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 )}
               </div>
-
               {openDropdown === 'vendor' && filteredVendorOptions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
                   {filteredVendorOptions.map((vendor) => (
                     <div
                       key={vendor.id}
-                      onClick={() => {
-                        setSearchVendor(vendor.name);
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 hover:bg-indigo-50 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
+                      onClick={() => { setSearchVendor(vendor.name); setOpenDropdown(null); }}
+                      className="px-4 py-2.5 hover:bg-teal-50 hover:text-teal-700 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-b-0 transition"
                     >
                       {vendor.name}
                     </div>
@@ -972,65 +949,87 @@ export default function PriceNegotiationTracker() {
 
             {/* Garden Name */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Garden Name
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Garden
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Garden..."
                   value={garden?.name || 'Loading...'}
                   disabled
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600 cursor-not-allowed"
+                  className="w-full pl-4 pr-20 py-2.5 bg-teal-50 border border-teal-100 rounded-xl text-sm text-teal-700 font-medium cursor-not-allowed"
                 />
-                <span className="absolute right-3 top-2.5 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-semibold">
-                  {garden ? '✓ Active' : 'Loading'}
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-teal-200 text-teal-800 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
+                  {garden ? '✓ Active' : '...'}
                 </span>
               </div>
             </div>
 
-            {/* Current Price */}
+            {/* Current Negotiating Price */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Current Negotiating Price (Optional)
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">
+                Negotiating Price <span className="text-slate-400 normal-case font-normal">(optional)</span>
               </label>
-              <input
-                type="number"
-                placeholder="Enter price to compare..."
-                value={currentPrice}
-                onChange={(e) => setCurrentPrice(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-semibold text-sm">₹</span>
+                <input
+                  type="number"
+                  placeholder="Enter to compare..."
+                  value={currentPrice}
+                  onChange={(e) => setCurrentPrice(e.target.value)}
+                  className="w-full pl-7 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                />
+              </div>
             </div>
           </div>
 
           {/* Sort Controls */}
           {results.length > 0 && (
-            <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-              <p className="text-sm text-slate-600">
-                {results.length} result{results.length !== 1 ? 's' : ''} found
+            <div className="flex flex-wrap items-center justify-between pt-4 border-t border-slate-100 gap-3">
+              <p className="text-sm text-slate-500">
+                <span className="font-bold text-slate-700">{results.length}</span> result{results.length !== 1 ? 's' : ''}
               </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSortOrder('asc')}
-                  className={`px-3 py-1 text-sm rounded transition ${
-                    sortOrder === 'asc'
-                      ? 'bg-indigo-100 text-indigo-700 font-semibold'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  ↑ Low to High
-                </button>
-                <button
-                  onClick={() => setSortOrder('desc')}
-                  className={`px-3 py-1 text-sm rounded transition ${
-                    sortOrder === 'desc'
-                      ? 'bg-indigo-100 text-indigo-700 font-semibold'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  ↓ High to Low
-                </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition"
+                  >
+                    Sort: {sortType === 'price' ? 'Price' : sortType === 'date' ? 'Date' : 'Alphabetic'}
+                    <ChevronDown size={12} />
+                  </button>
+                  {showSortMenu && (
+                    <div className="absolute top-full right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 min-w-36 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                      {[
+                        { key: 'price', label: 'Price' },
+                        { key: 'date', label: 'Date of Purchase' },
+                        { key: 'alphabetic', label: 'Alphabetic' },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          onClick={() => { setSortType(key); setShowSortMenu(false); }}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition border-b border-slate-100 last:border-b-0 ${sortType === key ? 'bg-teal-50 text-teal-700 font-semibold' : 'hover:bg-slate-50 text-slate-700'}`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex rounded-lg overflow-hidden border border-slate-200">
+                  <button
+                    onClick={() => setSortOrder('asc')}
+                    className={`px-3 py-1.5 text-xs font-semibold transition ${sortOrder === 'asc' ? 'bg-teal-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    ↑ Asc
+                  </button>
+                  <button
+                    onClick={() => setSortOrder('desc')}
+                    className={`px-3 py-1.5 text-xs font-semibold transition border-l border-slate-200 ${sortOrder === 'desc' ? 'bg-teal-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    ↓ Desc
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1048,225 +1047,214 @@ export default function PriceNegotiationTracker() {
               return (
                 <div
                   key={result.id}
-                  className={`bg-white rounded-lg shadow-sm p-5 border-l-4 transition ${
+                  className={`bg-white rounded-2xl shadow-sm border transition hover:shadow-md ${
                     isSearchedVendor
-                      ? 'border-l-green-500 bg-green-50'
-                      : 'border-l-slate-300 hover:shadow-md'
+                      ? 'border-teal-300 ring-1 ring-teal-200'
+                      : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        {result.vendor_name}
-                        {isSearchedVendor && (
-                          <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-1 rounded font-semibold">
-                            SEARCHED
+                  <div className="p-5">
+                    {/* Top row */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <h3 className="text-base font-bold text-slate-900 leading-tight">
+                            {result.vendor_name}
+                          </h3>
+                          {isSearchedVendor && (
+                            <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-semibold">
+                              SEARCHED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-medium">
+                            {result.chemical_name}
                           </span>
-                        )}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Garden: <span className="font-semibold text-slate-700">{garden?.name || 'N/A'}</span>
-                      </p>
-                      <p className="text-sm text-slate-600 mt-1">{result.chemical_name}</p>
-                    </div>
-
-                    {comparison && (
-                      <div
-                        className={`text-right px-3 py-2 rounded text-sm font-semibold flex items-center gap-1 whitespace-nowrap ml-4 ${
-                          comparison.type === 'lower'
-                            ? 'bg-green-100 text-green-800'
-                            : comparison.type === 'higher'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}
-                      >
-                        {comparison.type === 'lower' && (
-                          <>
-                            <TrendingDown size={16} />
-                            Save ₹{comparison.diff}
-                          </>
-                        )}
-                        {comparison.type === 'higher' && (
-                          <>
-                            <TrendingUp size={16} />
-                            Lose ₹{comparison.diff}
-                          </>
-                        )}
-                        {comparison.type === 'equal' && <>Equal</>}
+                          {garden && (
+                            <span className="text-xs text-slate-400">{garden.name}</span>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <p className="text-2xl font-bold text-slate-900">
-                        ₹{Number(result.price_per_unit || 0).toFixed(2)}
-                        <span className="text-sm text-slate-600 font-normal">
-                          /{result.unit}
-                        </span>
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Last purchased:{' '}
-                        {result.purchase_date
-                          ? result.purchase_date.split('T')[0]
-                          : 'N/A'}
-                      </p>
+                      {comparison && (
+                        <div
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold shrink-0 ${
+                            comparison.type === 'lower'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : comparison.type === 'higher'
+                              ? 'bg-red-100 text-red-600'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}
+                        >
+                          {comparison.type === 'lower' && <><TrendingDown size={15} /> Save ₹{comparison.diff}</>}
+                          {comparison.type === 'higher' && <><TrendingUp size={15} /> Lose ₹{comparison.diff}</>}
+                          {comparison.type === 'equal' && <>Equal</>}
+                        </div>
+                      )}
                     </div>
-                    <button
-                      onClick={() => {
-                        setEditPriceData({
-                          id: result.id,
-                          chemical: result.chemical_name,
-                          vendor: result.vendor_name,
-                          price: result.price_per_unit.toString(),
-                          unit: result.unit,
-                          date: result.purchase_date,
-                        });
-                        setShowEditPrice(true);
-                      }}
-                      className="ml-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg transition text-sm"
-                    >
-                      Edit
-                    </button>
+
+                    {/* Bottom row */}
+                    <div className="flex items-end justify-between pt-3 border-t border-slate-100">
+                      <div>
+                        <p className="text-3xl font-black text-slate-900 leading-none tracking-tight">
+                          ₹{Number(result.price_per_unit || 0).toFixed(2)}
+                          <span className="text-sm font-normal text-slate-500 ml-1">/{result.unit}</span>
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1.5">
+                          Last purchase: {result.purchase_date?.split('T')[0] || 'N/A'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setEditPriceData({
+                            id: result.id,
+                            chemical: result.chemical_name,
+                            vendor: result.vendor_name,
+                            price: result.price_per_unit.toString(),
+                            unit: result.unit,
+                            date: result.purchase_date,
+                          });
+                          setShowEditPrice(true);
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-xl transition text-sm"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
             })
           ) : searchChemical || searchVendor ? (
-            <div className="bg-slate-50 rounded-lg p-8 text-center border border-dashed border-slate-300">
-              <Search size={32} className="text-slate-400 mx-auto mb-3" />
-              <p className="text-slate-600">No results found</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Try searching for different chemicals or vendors
-              </p>
+            <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center">
+              <div className="bg-slate-100 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-4">
+                <Search size={22} className="text-slate-400" />
+              </div>
+              <p className="font-semibold text-slate-700">No results found</p>
+              <p className="text-sm text-slate-400 mt-1">Try different chemicals or vendors</p>
             </div>
           ) : (
-            <div className="bg-slate-50 rounded-lg p-8 text-center border border-dashed border-slate-300">
-              <Search size={32} className="text-slate-400 mx-auto mb-3" />
-              <p className="text-slate-600">Start searching to see prices</p>
-              <p className="text-sm text-slate-500 mt-1">
-                Enter a chemical name or vendor to view pricing history
-              </p>
+            <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-12 text-center">
+              <div className="bg-teal-50 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-4">
+                <Search size={22} className="text-teal-400" />
+              </div>
+              <p className="font-semibold text-slate-700">Search to see prices</p>
+              <p className="text-sm text-slate-400 mt-1">Enter a chemical or vendor name above</p>
             </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="fixed bottom-6 left-4 right-4 md:relative md:bottom-auto md:left-auto md:right-auto md:mt-8 flex gap-3">
+        {/* Log Price Button — Desktop */}
+        <div className="hidden md:flex justify-end mt-6">
           <button
             onClick={() => setShowLogPrice(true)}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition flex items-center justify-center gap-2"
+            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:shadow-lg transition"
           >
-            <Plus size={20} />
-            Log Purchase
+            <Plus size={18} />
+            Log Price
           </button>
         </div>
-
-        {/* Hidden file input for CSV import */}
-        {/* Removed - CSV import no longer needed */}
       </main>
 
-      {/* Modals */}
+      {/* Log Price FAB — Mobile only */}
+      <div className="fixed bottom-6 right-5 md:hidden z-30">
+        <button
+          onClick={() => setShowLogPrice(true)}
+          className="w-14 h-14 flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white rounded-full shadow-xl hover:shadow-2xl transition active:scale-95"
+          title="Log a new price"
+        >
+          <Plus size={22} />
+        </button>
+      </div>
 
       {/* Edit Price Modal */}
       {showEditPrice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Update Price</h2>
+        <div
+          className="fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-50 p-0 md:p-4"
+          onClick={() => setShowEditPrice(false)}
+        >
+          <div
+            className="bg-white w-full md:max-w-sm rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar for mobile */}
+            <div className="flex justify-center pt-3 pb-1 md:hidden">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+            <div className="flex justify-between items-center px-5 pt-4 pb-4 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">Edit Price</h2>
               <button
                 onClick={() => setShowEditPrice(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4 mb-6">
-              {/* Chemical (read-only) */}
+            <div className="px-5 py-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Chemical
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Chemical *</label>
                 <input
                   type="text"
                   value={editPriceData.chemical}
-                  disabled
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
+                  onChange={(e) => setEditPriceData({ ...editPriceData, chemical: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
               </div>
-
-              {/* Vendor (read-only) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Vendor
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Vendor *</label>
                 <input
                   type="text"
                   value={editPriceData.vendor}
-                  disabled
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-100 text-slate-600"
+                  onChange={(e) => setEditPriceData({ ...editPriceData, vendor: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
               </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Price per Unit *
-                </label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={editPriceData.price}
-                  onChange={(e) =>
-                    setEditPriceData({ ...editPriceData, price: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Price per Unit *</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">₹</span>
+                    <input
+                      type="number"
+                      value={editPriceData.price}
+                      onChange={(e) => setEditPriceData({ ...editPriceData, price: e.target.value })}
+                      className="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Unit</label>
+                  <input
+                    type="text"
+                    value={editPriceData.unit}
+                    onChange={(e) => setEditPriceData({ ...editPriceData, unit: e.target.value })}
+                    placeholder="ltr, kgs, bag"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                  />
+                </div>
               </div>
-
-              {/* Unit */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Unit
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., ltr, kgs, bag"
-                  value={editPriceData.unit}
-                  onChange={(e) =>
-                    setEditPriceData({ ...editPriceData, unit: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Purchase Date */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Purchase Date *
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Purchase Date *</label>
                 <input
                   type="date"
                   value={editPriceData.date?.split('T')[0]}
-                  onChange={(e) =>
-                    setEditPriceData({ ...editPriceData, date: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => setEditPriceData({ ...editPriceData, date: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="px-5 pb-6 flex gap-3">
               <button
                 onClick={() => setShowEditPrice(false)}
-                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold py-2 px-4 rounded-lg transition"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl transition text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEditPrice}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 rounded-xl transition text-sm"
               >
                 Update Price
               </button>
@@ -1277,165 +1265,128 @@ export default function PriceNegotiationTracker() {
 
       {/* Log Price Modal */}
       {showLogPrice && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Log Purchase</h2>
+        <div
+          className="fixed inset-0 bg-black/60 flex items-end md:items-center justify-center z-50 p-0 md:p-4"
+          onClick={() => setShowLogPrice(false)}
+        >
+          <div
+            className="bg-white w-full md:max-w-sm rounded-t-3xl md:rounded-2xl shadow-2xl max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar for mobile */}
+            <div className="flex justify-center pt-3 pb-1 md:hidden">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+            <div className="flex justify-between items-center px-5 pt-4 pb-4 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">Log Purchase</h2>
               <button
                 onClick={() => setShowLogPrice(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition"
               >
-                <X size={24} />
+                <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="px-5 py-4 space-y-4">
               {/* Chemical dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Chemical *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Add chemical..."
-                    onFocus={() => setOpenDropdown('log-chemical')}
-                    value={logFormData.chemical}
-                    onChange={(e) =>
-                      setLogFormData({
-                        ...logFormData,
-                        chemical: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                  />
-                  {openDropdown === 'log-chemical' &&
-                    logFormData.chemical &&
-                    filteredLogChemicals.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
-                      {filteredLogChemicals.map((chem) => (
-                        <div
-                          key={chem.id}
-                          onClick={() => {
-                            setLogFormData({
-                              ...logFormData,
-                              chemical: chem.name,
-                            });
-                          
-                            setOpenDropdown(null);
-                          }}
-                          className="px-4 py-2 hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
-                        >
-                          {chem.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Chemical *</label>
+                <input
+                  type="text"
+                  placeholder="Type or select chemical..."
+                  onFocus={() => setOpenDropdown('log-chemical')}
+                  value={logFormData.chemical}
+                  onChange={(e) => setLogFormData({ ...logFormData, chemical: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                />
+                {openDropdown === 'log-chemical' && logFormData.chemical && filteredLogChemicals.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-40 overflow-y-auto">
+                    {filteredLogChemicals.map((chem) => (
+                      <div
+                        key={chem.id}
+                        onClick={() => { setLogFormData({ ...logFormData, chemical: chem.name }); setOpenDropdown(null); }}
+                        className="px-4 py-2.5 hover:bg-teal-50 hover:text-teal-700 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-b-0 transition"
+                      >
+                        {chem.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Vendor dropdown */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Vendor *
-                </label>
-                <div className="relative">
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Vendor *</label>
+                <input
+                  type="text"
+                  placeholder="Type or select vendor..."
+                  onFocus={() => setOpenDropdown('log-vendor')}
+                  value={logFormData.vendor}
+                  onChange={(e) => setLogFormData({ ...logFormData, vendor: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                />
+                {openDropdown === 'log-vendor' && logFormData.vendor && filteredLogVendors.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-40 overflow-y-auto">
+                    {filteredLogVendors.map((vendor) => (
+                      <div
+                        key={vendor.id}
+                        onClick={() => { setLogFormData({ ...logFormData, vendor: vendor.name }); setOpenDropdown(null); }}
+                        className="px-4 py-2.5 hover:bg-teal-50 hover:text-teal-700 cursor-pointer text-sm text-slate-700 border-b border-slate-100 last:border-b-0 transition"
+                      >
+                        {vendor.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Price per Unit *</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-medium">₹</span>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={logFormData.price}
+                      onChange={(e) => setLogFormData({ ...logFormData, price: e.target.value })}
+                      className="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Unit</label>
                   <input
                     type="text"
-                    placeholder="Add vendor..."
-                    onFocus={() => setOpenDropdown('log-vendor')}
-                    value={logFormData.vendor}
-                    onChange={(e) =>
-                      setLogFormData({
-                        ...logFormData,
-                        vendor: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg"
+                    placeholder="ltr, kgs, bag..."
+                    value={logFormData.unit}
+                    onChange={(e) => setLogFormData({ ...logFormData, unit: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                   />
-                  {openDropdown === 'log-vendor' &&
-                    logFormData.vendor &&
-                    filteredLogVendors.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto">
-                      {filteredLogVendors.map((vendor) => (
-                        <div
-                          key={vendor.id}
-                          onClick={() => {
-                            setLogFormData({
-                              ...logFormData,
-                              vendor: vendor.name,
-                            });
-                          
-                            setOpenDropdown(null);
-                          }}
-                          className="px-4 py-2 hover:bg-slate-100 cursor-pointer border-b border-slate-200 last:border-b-0 text-sm"
-                        >
-                          {vendor.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Price */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Price per Unit *
-                </label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={logFormData.price}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, price: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                />
-              </div>
-
-              {/* Unit */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Unit
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., ltr, kgs, bag"
-                  value={logFormData.unit}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, unit: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Purchase Date *
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Purchase Date *</label>
                 <input
                   type="date"
                   value={logFormData.date?.split('T')[0]}
-                  onChange={(e) =>
-                    setLogFormData({ ...logFormData, date: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg"
+                  onChange={(e) => setLogFormData({ ...logFormData, date: e.target.value })}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent focus:bg-white transition"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="px-5 pb-6 flex gap-3">
               <button
                 onClick={() => setShowLogPrice(false)}
-                className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold py-2 px-4 rounded-lg transition"
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-xl transition text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleLogPrice}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 rounded-xl transition text-sm"
               >
                 Log Price
               </button>

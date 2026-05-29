@@ -6,3 +6,5 @@ dist/
 project_export.md
 seed.js
 VENDOR_CHEMICAL_DATABASE.json
+vendor_chemicals.csv
+csv_to_json.js
