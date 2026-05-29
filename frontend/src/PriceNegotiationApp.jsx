@@ -6,11 +6,11 @@ import { Search, Plus, RefreshCw, Settings, X, TrendingDown, TrendingUp, Chevron
 // ============================================================================
 
 const DB_NAME = 'PriceNegotiationDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const API_BASE_URL =
   import.meta.env.PROD
     ? 'https://purchasepricetracker.onrender.com/api'
-    : 'http://localhost:5000/api';
+    : `http://${window.location.hostname}:5000/api`;
 
 const initDB = () => {
   return new Promise((resolve, reject) => {
@@ -260,6 +260,42 @@ export default function PriceNegotiationTracker() {
         setPrices(loadedPrices);
         setChemicals(loadedChemicals);
         setVendors(loadedVendors);
+
+        // Always attempt a background sync on load if online, regardless of local data
+        if (navigator.onLine && loadedPrices.length > 0) {
+          setTimeout(async () => {
+            try {
+              const queue = await dbOps.getAll(database, 'sync_queue');
+              const lastSync = await dbOps.getMetadata(database, 'last_sync_time');
+              const response = await fetch(`${API_BASE_URL}/sync`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  device_id: 'browser-' + btoa(navigator.userAgent).substring(0, 20),
+                  last_sync_timestamp: Number(lastSync) || 0,
+                  offline_queue: queue,
+                }),
+              });
+              if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                  await dbOps.clear(database, 'prices');
+                  await dbOps.clear(database, 'vendors');
+                  await dbOps.clear(database, 'chemicals');
+                  for (const price of data.merged_prices || []) await dbOps.put(database, 'prices', price);
+                  for (const vendor of data.merged_vendors || []) await dbOps.put(database, 'vendors', vendor);
+                  for (const chemical of data.merged_chemicals || []) await dbOps.put(database, 'chemicals', chemical);
+                  await dbOps.clear(database, 'sync_queue');
+                  await dbOps.setMetadata(database, 'last_sync_time', data.sync_timestamp);
+                  setPrices(data.merged_prices || []);
+                  setVendors(data.merged_vendors || []);
+                  setChemicals(data.merged_chemicals || []);
+                  setOfflineQueueCount(0);
+                }
+              }
+            } catch { /* silently keep local data */ }
+          }, 1500);
+        }
 
         const lastSync = await dbOps.getMetadata(database, 'last_sync_time');
         setLastSyncTime(lastSync);
@@ -641,7 +677,7 @@ export default function PriceNegotiationTracker() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           device_id: 'browser-' + btoa(navigator.userAgent).substring(0, 20),
-          last_sync_timestamp: lastSync || 0,
+          last_sync_timestamp: Number(lastSync) || 0,
           offline_queue: queue,
         }),
       });

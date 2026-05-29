@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v16';
+const CACHE_VERSION = 'v18';
 const CACHE_NAME = `price-negotiator-${CACHE_VERSION}`;
 const API_CACHE = `api-cache-${CACHE_VERSION}`;
 
@@ -83,23 +83,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // STATIC ASSETS
+  // STATIC ASSETS - network-first for HTML pages, cache-first for JS/CSS/images
+  const isHTMLRequest = request.headers.get('accept')?.includes('text/html');
+
+  if (isHTMLRequest) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
-
       return fetch(request).then((response) => {
         const clone = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, clone);
-        });
-
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         return response;
       });
     })
   );
-});
+  });
 
 // BACKGROUND SYNC
 self.addEventListener('sync', (event) => {
