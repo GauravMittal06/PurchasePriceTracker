@@ -452,9 +452,11 @@ app.post('/api/sync', async (req, res) => {
       try {
         if (item.action === 'create_price') {
           const p = item.payload;
-          const exists = await queryHelper.priceExists(p.chemical_name, p.vendor_name, p.purchase_date);
-          
-          if (!exists) {
+          const idExists = useDatabase && pool
+            ? (await pool.query('SELECT id FROM prices WHERE id = $1', [p.id])).rows.length > 0
+            : inMemoryData.prices.some(pr => pr.id === p.id);
+
+          if (!idExists) {
             // Auto-add vendor if not exists
             const vendorExists = await queryHelper.vendorExists(p.vendor_name);
             if (!vendorExists) {
@@ -473,9 +475,9 @@ app.post('/api/sync', async (req, res) => {
               created_at: p.created_at
             });
 
-            // Insert price
+            // Insert price using client-generated id
             await queryHelper.insertPrice({
-              id: uuid.v4(),
+              id: p.id,
               chemical_name: p.chemical_name,
               vendor_name: p.vendor_name,
               price_per_unit: p.price_per_unit,
@@ -491,18 +493,25 @@ app.post('/api/sync', async (req, res) => {
             skippedCount++;
           }
         } else if (item.action === 'update_price') {
-          // Handle update_price action
           const p = item.payload;
           if (useDatabase && pool) {
-            await pool.query(
-              `UPDATE prices SET chemical_name = $1, vendor_name = $2, price_per_unit = $3, unit = $4, purchase_date = $5, last_modified = $6 
-               WHERE id = $7`,
-              [p.chemical_name, p.vendor_name, p.price_per_unit, p.unit, p.purchase_date, p.last_modified, p.id]
-            );
+            const exists = await pool.query('SELECT id FROM prices WHERE id = $1', [p.id]);
+            if (exists.rows.length > 0) {
+              await pool.query(
+                `UPDATE prices SET chemical_name = $1, vendor_name = $2, price_per_unit = $3, unit = $4, purchase_date = $5, last_modified = $6 
+                 WHERE id = $7`,
+                [p.chemical_name, p.vendor_name, p.price_per_unit, p.unit, p.purchase_date, p.last_modified, p.id]
+              );
+            } else {
+              // Created offline and never synced — insert instead
+              await queryHelper.insertPrice({ ...p, device_id });
+            }
           } else {
             const priceIdx = inMemoryData.prices.findIndex(pr => pr.id === p.id);
             if (priceIdx !== -1) {
               inMemoryData.prices[priceIdx] = { ...inMemoryData.prices[priceIdx], ...p };
+            } else {
+              inMemoryData.prices.push({ ...p });
             }
           }
           processedCount++;

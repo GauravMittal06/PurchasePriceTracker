@@ -228,17 +228,19 @@ export default function PriceNegotiationTracker() {
 
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  const loadGarden = async () => {
+  const loadGarden = async (database) => {
+    // Show cached garden immediately
+    const cached = await dbOps.getAll(database, 'gardens');
+    if (cached.length > 0) setGarden(cached[0]);
+    // Then refresh from network silently
     try {
       const response = await fetch(`${API_BASE_URL}/gardens`);
       const gardens = await response.json();
       if (gardens.length > 0) {
         setGarden(gardens[0]);
-        await dbOps.put(db, 'gardens', gardens[0]);
+        await dbOps.put(database, 'gardens', gardens[0]);
       }
-    } catch (error) {
-      console.error('Failed to load garden:', error);
-    }
+    } catch { /* keep using cached */ }
   };
 
   // =========================================================================
@@ -265,10 +267,46 @@ export default function PriceNegotiationTracker() {
         const queueCount = await dbOps.getAll(database, 'sync_queue');
         setOfflineQueueCount(queueCount.length);
 
-        await loadGarden();
+        await loadGarden(database);
 
         if (loadedPrices.length === 0 && loadedVendors.length === 0) {
-          await seedInitialData(database);
+          if (navigator.onLine) {
+            // Pull real data from server on first install
+            // Call sync inline here since db state isn't set yet at this point
+            try {
+              const response = await fetch(`${API_BASE_URL}/sync`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  device_id: 'browser-' + btoa(navigator.userAgent).substring(0, 20),
+                  last_sync_timestamp: 0,
+                  offline_queue: [],
+                }),
+              });
+              if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                  for (const price of data.merged_prices || []) await dbOps.put(database, 'prices', price);
+                  for (const vendor of data.merged_vendors || []) await dbOps.put(database, 'vendors', vendor);
+                  for (const chemical of data.merged_chemicals || []) await dbOps.put(database, 'chemicals', chemical);
+                  for (const gdn of data.merged_gardens || []) await dbOps.put(database, 'gardens', gdn);
+                  await dbOps.setMetadata(database, 'last_sync_time', data.sync_timestamp);
+                  setPrices(data.merged_prices || []);
+                  setVendors(data.merged_vendors || []);
+                  setChemicals(data.merged_chemicals || []);
+                  if (data.merged_gardens?.length > 0) setGarden(data.merged_gardens[0]);
+                  setLastSyncTime(new Date(data.sync_timestamp).toLocaleString());
+                  showToast('✓ Data loaded from server', 'success');
+                }
+              } else {
+                await seedInitialData(database);
+              }
+            } catch {
+              await seedInitialData(database);
+            }
+          } else {
+            await seedInitialData(database);
+          }
         }
 
         if ('serviceWorker' in navigator) {
@@ -350,36 +388,6 @@ export default function PriceNegotiationTracker() {
     setVendors(initialVendors);
     showToast('Initial data loaded', 'success');
   };
-
-  // Auto-sync when internet reconnects
-  useEffect(() => {
-    const handleOnline = () => {
-      showToast('Internet restored - syncing...', 'info');
-      handleSync();
-    };
-
-    window.addEventListener('online', handleOnline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
-  }, [db, prices, vendors]);
-
-  useEffect(() => {
-    if (!navigator.serviceWorker) return;
-    
-    const handler = (event) => {
-      if (event.data?.type === 'TRIGGER_SYNC') {
-        handleSync();
-      }
-    };
-  
-    navigator.serviceWorker.addEventListener('message', handler);
-  
-    return () => {
-      navigator.serviceWorker.removeEventListener('message', handler);
-    };
-  }, [db, prices, vendors]);
 
   // =========================================================================
   // SEARCH & FILTERING WITH IMPROVED SORTING
@@ -572,6 +580,7 @@ export default function PriceNegotiationTracker() {
       return;
     }
 
+    const original = prices.find(p => p.id === editPriceData.id);
     const updatedPrice = {
       id: editPriceData.id,
       chemical_name: editPriceData.chemical,
@@ -580,7 +589,7 @@ export default function PriceNegotiationTracker() {
       unit: editPriceData.unit || 'unit',
       quantity: 1,
       purchase_date: editPriceData.date,
-      created_at: Date.now(),
+      created_at: original?.created_at || Date.now(),
       last_modified: Date.now(),
       synced: false,
     };
@@ -614,12 +623,19 @@ export default function PriceNegotiationTracker() {
   const handleSync = async () => {
     if (!db || syncStatus === 'syncing') return;
 
+    // Explicit offline check before attempting anything
+    if (!navigator.onLine) {
+      showToast('You are offline - data saved locally', 'warning');
+      return;
+    }
+
     setSyncStatus('syncing');
 
     try {
       const queue = await dbOps.getAll(db, 'sync_queue');
       const lastSync = await dbOps.getMetadata(db, 'last_sync_time');
 
+      // No .catch() shim — let real network errors propagate to outer catch
       const response = await fetch(`${API_BASE_URL}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -628,75 +644,52 @@ export default function PriceNegotiationTracker() {
           last_sync_timestamp: lastSync || 0,
           offline_queue: queue,
         }),
-      }).catch(() => {
-        return {
-          ok: true,
-          json: async () => ({
-            success: true,
-            merged_prices: prices,
-            merged_vendors: vendors,
-            sync_timestamp: Date.now(),
-          }),
-        };
       });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
       const data = await response.json();
 
-      if (data.success) {
-        await dbOps.clear(db, 'sync_queue');
-        await dbOps.setMetadata(db, 'last_sync_time', data.sync_timestamp);
-
-        setLastSyncTime(new Date(data.sync_timestamp).toLocaleString());
-        setOfflineQueueCount(0);
-        setSyncStatus('success');
-        showToast('✓ Synced successfully', 'success');
-
-        setTimeout(() => setSyncStatus('idle'), 2000);
-      }
-      // Update React state from merged backend state
-      if (data.merged_prices) {
-        setPrices(data.merged_prices);
+      if (!data.success) {
+        throw new Error(data.error || 'Sync rejected by server');
       }
 
-      if (data.merged_vendors) {
-        setVendors(data.merged_vendors);
-      }
-
-      if (data.merged_chemicals) {
-        setChemicals(data.merged_chemicals);
-      }
-
-      if (data.merged_gardens && data.merged_gardens.length > 0) {
-        setGarden(data.merged_gardens[0]);
-      }
-
-      // Refresh IndexedDB with latest merged state
-
-      // Clear old data
+      // Update IndexedDB first, then React state
       await dbOps.clear(db, 'prices');
       await dbOps.clear(db, 'vendors');
       await dbOps.clear(db, 'chemicals');
       await dbOps.clear(db, 'gardens');
 
-      // Save latest prices
       for (const price of data.merged_prices || []) {
         await dbOps.put(db, 'prices', price);
       }
-
-      // Save latest vendors
       for (const vendor of data.merged_vendors || []) {
         await dbOps.put(db, 'vendors', vendor);
       }
-
-      // Save latest chemicals
       for (const chemical of data.merged_chemicals || []) {
         await dbOps.put(db, 'chemicals', chemical);
       }
-
-      // Save latest gardens
       for (const gdn of data.merged_gardens || []) {
         await dbOps.put(db, 'gardens', gdn);
       }
+
+      await dbOps.clear(db, 'sync_queue');
+      await dbOps.setMetadata(db, 'last_sync_time', data.sync_timestamp);
+
+      // Update React state
+      if (data.merged_prices) setPrices(data.merged_prices);
+      if (data.merged_vendors) setVendors(data.merged_vendors);
+      if (data.merged_chemicals) setChemicals(data.merged_chemicals);
+      if (data.merged_gardens && data.merged_gardens.length > 0) setGarden(data.merged_gardens[0]);
+
+      setLastSyncTime(new Date(data.sync_timestamp).toLocaleString());
+      setOfflineQueueCount(0);
+      setSyncStatus('success');
+      showToast('✓ Synced successfully', 'success');
+      setTimeout(() => setSyncStatus('idle'), 2000);
+
     } catch (error) {
       console.error('Sync error:', error);
       setSyncStatus('error');
@@ -704,6 +697,34 @@ export default function PriceNegotiationTracker() {
       setTimeout(() => setSyncStatus('idle'), 2000);
     }
   };
+
+  const handleSyncRef = useRef(handleSync);
+  useEffect(() => { handleSyncRef.current = handleSync; }, [handleSync]);
+
+  // Auto-sync when internet reconnects
+  useEffect(() => {
+    const handleOnline = () => {
+      showToast('Internet restored - syncing...', 'info');
+      handleSyncRef.current();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    const handler = (event) => {
+      if (event.data?.type === 'TRIGGER_SYNC') {
+        handleSyncRef.current();
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handler);
+    };
+  }, []);
 
   const getPriceComparison = (price) => {
     price = Number(price);

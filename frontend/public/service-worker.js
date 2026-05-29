@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v13';
+const CACHE_VERSION = 'v16';
 const CACHE_NAME = `price-negotiator-${CACHE_VERSION}`;
 const API_CACHE = `api-cache-${CACHE_VERSION}`;
 
@@ -56,13 +56,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API REQUESTS
+  // API REQUESTS — never cache POST requests (like /api/sync)
+  // For GET requests, use network-first with cache fallback
   if (url.pathname.startsWith('/api/')) {
+    if (request.method !== 'GET') {
+      // Let POST/PUT/DELETE go straight to network, no SW interference
+      return;
+    }
+
     event.respondWith(
       fetch(request)
         .then((response) => {
           const clone = response.clone();
-
           caches.open(API_CACHE).then((cache) => {
             if (response.ok) {
               cache.put(request, clone);
